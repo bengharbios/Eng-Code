@@ -11,6 +11,8 @@ let prisma: PrismaClient;
 const tUrl = process.env.TURSO_DATABASE_URL || "libsql://database-yellow-button-vercel-icfg-16naipzg5tbpfaiz1ny2dv98.aws-us-east-1.turso.io";
 const tAuth = process.env.TURSO_AUTH_TOKEN || "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJleHAiOjE3ODg1MzAyOTAsImlhdCI6MTc4ODQ0Mzg5MCwiaWQiOiIwMWEwNjc1Yy04YTAxLTc5MTMtYjUxNi1iMTQ5OTI4ZDBiOTciLCJraWQiOiJ6TWY4dk0tcUl6aWxFNlczYTUtWkUxNldWdkdSNE9LUGdGVUc5X3Z6elE0IiwicmlkIjoiMGY5NDE5OGQtNTU2OS00MDYwLTkyOWQtZTAyOTdjODk0OTVhIn0.bwxfZSKpmBtK9zgjq1j4Kw4kjiWkDOXdHGGK3kYVJFQk93s2fCBRpAw8VlrM1a4d5r70tzs5LfO5SzuaMR5_DA";
 
+export let lastInitError: any = null;
+
 if (tUrl && tUrl !== "undefined" && tAuth && tAuth !== "undefined") {
   try {
     const libsql = createClient({
@@ -21,6 +23,7 @@ if (tUrl && tUrl !== "undefined" && tAuth && tAuth !== "undefined") {
     prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter, datasourceUrl: "file:./dev.db", log: ['query'] })
   } catch (e) {
     console.error("Libsql init error:", e);
+    lastInitError = String(e) + " | stack: " + (e as any).stack;
     prisma = globalForPrisma.prisma ?? new PrismaClient({ log: ['query'] })
   }
 } else {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db, lastInitError } from "@/lib/db";
 
 export async function GET() {
   try {
@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS "Attempt" (
         tUrl: process.env.TURSO_DATABASE_URL || "MISSING",
         tUrlLen: process.env.TURSO_DATABASE_URL?.length || 0,
         tAuth: process.env.TURSO_AUTH_TOKEN ? "PRESENT" : "MISSING",
+        initError: lastInitError,
       }
     }, { status: 500 });
   }
