@@ -25,17 +25,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "not_found" }, { status: 404 });
     }
 
-    // Upsert student by phone
+    // Upsert student by phone — only update non-auth fields to preserve passwordHash
     let student = await db.student.findUnique({ where: { phone: String(phone).trim() } });
     if (student) {
-      student = await db.student.update({
-        where: { id: student.id },
-        data: {
-          name: String(name).trim().slice(0, 120),
-          age: Math.max(0, Math.min(99, Number(age) || 0)),
-          country: String(country || "").slice(0, 60),
-        },
-      });
+      // Update name/age/country only if they have real values (don't overwrite with empty)
+      const updateData: Record<string, any> = {};
+      if (name && String(name).trim()) updateData.name = String(name).trim().slice(0, 120);
+      if (age && Number(age) > 0) updateData.age = Math.max(0, Math.min(99, Number(age) || 0));
+      if (country && String(country).trim()) updateData.country = String(country || "").slice(0, 60);
+      
+      if (Object.keys(updateData).length > 0) {
+        student = await db.student.update({
+          where: { id: student.id },
+          data: updateData,
+        });
+      }
     } else {
       student = await db.student.create({
         data: {
