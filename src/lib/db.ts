@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { createClient } from '@libsql/client'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { PrismaLibSQL } from '@prisma/adapter-libsql'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -15,13 +15,15 @@ export let lastInitError: any = null;
 
 if (tUrl && tUrl !== "undefined" && tAuth && tAuth !== "undefined") {
   try {
-    // In @prisma/adapter-libsql 7.x, PrismaLibSql takes a Config object, not a Client instance.
-    const adapter = new PrismaLibSql({
+    const libsql = createClient({
       url: tUrl.replace(/"/g, '').trim(),
       authToken: tAuth.replace(/"/g, '').trim(),
     })
+    const adapter = new PrismaLibSQL(libsql)
     
     // Prisma Engine reads DATABASE_URL from process.env because of schema.prisma.
+    // If it's missing, it throws URL_INVALID. We cannot use datasourceUrl alongside adapter.
+    // So we inject it into process.env before instantiating the client.
     process.env.DATABASE_URL = tUrl.replace(/"/g, '').trim();
     
     prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter, log: ['query'] })
