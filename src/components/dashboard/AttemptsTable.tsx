@@ -19,6 +19,7 @@ export default function AttemptsTable({
   showTest = false,
   exportTestId = "all",
   emptyNote,
+  onRefresh,
 }: {
   attempts: AttemptRow[];
   loading: boolean;
@@ -30,26 +31,34 @@ export default function AttemptsTable({
   const { t } = useI18n();
   const { toast } = useToast();
   
+  const [localAttempts, setLocalAttempts] = useState<AttemptRow[]>(attempts);
   const [viewAttempt, setViewAttempt] = useState<any>(null);
   const [loadingAttempt, setLoadingAttempt] = useState(false);
 
+  // Sync local state when parent refreshes data
+  useMemo(() => { setLocalAttempts(attempts); }, [attempts]);
+
   const stats = useMemo(() => {
-    if (attempts.length === 0) return null;
+    if (localAttempts.length === 0) return null;
     const avg = Math.round(
-      attempts.reduce((a, x) => a + x.percentage, 0) / attempts.length
+      localAttempts.reduce((a, x) => a + x.percentage, 0) / localAttempts.length
     );
-    const interviews = attempts.filter((x) => x.wantsInterview).length;
-    const uniqueStudents = new Set(attempts.map((x) => x.phone)).size;
-    return { avg, interviews, uniqueStudents, total: attempts.length };
-  }, [attempts]);
+    const interviews = localAttempts.filter((x) => x.wantsInterview).length;
+    const uniqueStudents = new Set(localAttempts.map((x) => x.phone)).size;
+    return { avg, interviews, uniqueStudents, total: localAttempts.length };
+  }, [localAttempts]);
 
   const deleteAttempt = async (id: string, name: string) => {
     if (!confirm(`هل أنت متأكد من حذف محاولة الطالب ${name}؟`)) return;
+    // Optimistically remove from UI immediately
+    setLocalAttempts(prev => prev.filter(a => a.id !== id));
     const res = await fetch(`/api/attempts?id=${id}`, { method: "DELETE" });
     if (res.ok) {
-      toast({ title: "تم حذف المحاولة" });
+      toast({ title: "✅ تم حذف المحاولة" });
       onRefresh?.();
     } else {
+      // Restore on failure
+      setLocalAttempts(attempts);
       toast({ title: "حدث خطأ أثناء الحذف", variant: "destructive" });
     }
   };
@@ -125,20 +134,20 @@ export default function AttemptsTable({
               </tr>
             </thead>
             <tbody>
-              {loading && attempts.length === 0 ? (
+              {loading && localAttempts.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-10">
                     <span className="animate-spin inline-block rounded-full h-8 w-8 border-b-2 border-purple-500" />
                   </td>
                 </tr>
-              ) : attempts.length === 0 ? (
+              ) : localAttempts.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="text-center py-10 text-purple-400 font-bold">
                     {emptyNote ?? t("noAttempts")}
                   </td>
                 </tr>
               ) : (
-                attempts.map((a) => (
+                localAttempts.map((a) => (
                   <tr key={a.id} className="border-t border-purple-50 hover:bg-purple-50/50">
                     <td className="p-3 font-bold text-purple-900">{a.name}</td>
                     <td className="p-3">
