@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
 
 // ===== Users: super admin + instructors =====
@@ -62,15 +62,15 @@ model Question {
   points      Int    @default(5)
 }
 
-// ===== Students (people taking tests) =====
 model Student {
-  id        String    @id @default(cuid())
-  name      String
-  phone     String    @unique
-  age       Int       @default(0)
-  country   String    @default("")
-  createdAt DateTime  @default(now())
-  attempts  Attempt[]
+  id           String    @id @default(cuid())
+  name         String
+  phone        String    @unique
+  age          Int       @default(0)
+  country      String    @default("")
+  passwordHash String?   
+  createdAt    DateTime  @default(now())
+  attempts     Attempt[]
 }
 
 // ===== Attempts (results per test) =====

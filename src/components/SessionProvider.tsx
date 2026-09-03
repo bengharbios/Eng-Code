@@ -12,7 +12,7 @@ export interface SessionUser {
   id: string;
   username: string;
   name: string;
-  role: "super" | "instructor";
+  role: "super" | "instructor" | "student";
 }
 
 interface SessionCtx {

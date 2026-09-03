@@ -4,30 +4,68 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useI18n } from "@/lib/i18n";
 import { playClick } from "@/lib/sounds";
-import type { StudentAttemptRow } from "@/lib/shared-types";
+import { useSession } from "@/components/SessionProvider";
+import StudentPortal from "./StudentPortal";
 
 export default function StudentLookup({ onBack }: { onBack: () => void }) {
   const { t } = useI18n();
+  const { user, refresh } = useSession();
+  
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [phone, setPhone] = useState("");
-  const [rows, setRows] = useState<StudentAttemptRow[] | null>(null);
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const search = async () => {
+  if (user && user.role === "student") {
+    return <StudentPortal onBack={onBack} />;
+  }
+
+  const submitAuth = async () => {
     playClick();
+    const e: Record<string, string> = {};
     const digits = phone.replace(/\D/g, "");
-    if (digits.length < 7) return;
+    if (!digits || digits.length < 7) e.phone = t("validPhone");
+    if (!password) e.password = "كلمة المرور مطلوبة";
+    if (authMode === "register" && (!name.trim() || name.trim().length < 3)) e.name = t("fullRequired");
+    
+    if (Object.keys(e).length > 0) {
+      setErrors(e);
+      return;
+    }
+    
     setLoading(true);
+    setErrors({});
     try {
-      const res = await fetch(
-        `/api/attempts?phone=${encodeURIComponent(phone.trim())}`,
-        { cache: "no-store" }
-      );
+      const res = await fetch("/api/student/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: authMode,
+          phone: phone.trim(),
+          password,
+          name: name.trim(),
+          age: "0",
+          country: "أخرى"
+        })
+      });
       const data = await res.json();
-      setRows(Array.isArray(data) ? data : []);
-    } catch {
-      setRows([]);
+      
+      if (!res.ok) {
+        if (data.error === "invalid_password") setErrors({ password: "كلمة المرور غير صحيحة" });
+        else if (data.error === "not_found") setErrors({ phone: "رقم الهاتف غير مسجل. الرجاء إنشاء حساب جديد." });
+        else if (data.error === "already_exists") setErrors({ phone: "رقم الهاتف مسجل مسبقاً. الرجاء تسجيل الدخول." });
+        else setErrors({ phone: "حدث خطأ أثناء الاتصال. يرجى المحاولة مرة أخرى." });
+        return;
+      }
+      
+      await refresh();
+    } catch (err) {
+      setErrors({ phone: "تعذر الاتصال بالخادم." });
     } finally {
       setLoading(false);
     }
@@ -38,87 +76,77 @@ export default function StudentLookup({ onBack }: { onBack: () => void }) {
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-2xl"
+        className="w-full max-w-xl"
       >
         <div className="text-center mb-6">
           <span className="text-6xl">🎒</span>
           <h2 className="text-3xl font-extrabold text-purple-900 mt-2">
-            {t("studentLookupTitle")}
+            بوابة الطالب
           </h2>
-          <p className="text-purple-600 mt-2 font-semibold">{t("studentLookupDesc")}</p>
+          <p className="text-purple-600 mt-2 font-semibold">قم بتسجيل الدخول للاطلاع على نتائج اختباراتك السابقة</p>
         </div>
 
-        <div className="card-fun p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3">
+        <div className="card-fun p-6 sm:p-8 space-y-5">
+          <div className="flex bg-purple-100 rounded-2xl p-1 mb-4">
+            <button
+              onClick={() => { setAuthMode("login"); setErrors({}); }}
+              className={`flex-1 py-3 text-lg font-bold rounded-xl transition-all ${authMode === "login" ? "bg-white text-purple-900 shadow-sm" : "text-purple-500 hover:bg-purple-200/50"}`}
+            >
+              تسجيل الدخول
+            </button>
+            <button
+              onClick={() => { setAuthMode("register"); setErrors({}); }}
+              className={`flex-1 py-3 text-lg font-bold rounded-xl transition-all ${authMode === "register" ? "bg-white text-purple-900 shadow-sm" : "text-purple-500 hover:bg-purple-200/50"}`}
+            >
+              حساب جديد
+            </button>
+          </div>
+
+          {authMode === "register" && (
+            <div className="space-y-2">
+              <Label className="text-purple-900 font-bold text-base">{t("fullName")}</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-12 text-lg rounded-2xl border-2 border-purple-200 focus-visible:ring-purple-400 bg-purple-50/50"
+              />
+              {errors.name && <p className="text-red-500 text-sm font-semibold">{errors.name}</p>}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label className="text-purple-900 font-bold text-base">{t("phoneLabel")}</Label>
             <Input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && search()}
               placeholder={t("phonePlaceholder")}
-              dir="ltr"
               inputMode="tel"
-              className="h-12 text-lg rounded-2xl border-2 border-purple-200 text-left flex-1"
+              dir="ltr"
+              className="h-12 text-lg rounded-2xl border-2 border-purple-200 focus-visible:ring-purple-400 bg-purple-50/50 text-right"
             />
-            <Button
-              onClick={search}
-              disabled={loading}
-              className="btn-fun bg-gradient-to-l from-purple-600 to-fuchsia-500 text-white text-lg px-8 py-5 h-auto"
-              style={{ ["--btn-fun-shadow" as string]: "#6b21a8" }}
-            >
-              {loading ? "..." : `🔍 ${t("search")}`}
-            </Button>
+            {errors.phone && <p className="text-red-500 text-sm font-semibold">{errors.phone}</p>}
           </div>
-        </div>
 
-        {rows !== null && (
-          <div className="mt-6 space-y-4">
-            {rows.length === 0 ? (
-              <div className="card-fun p-8 text-center text-purple-400 font-bold">
-                {t("noResults")}
-              </div>
-            ) : (
-              rows.map((r, i) => (
-                <motion.div
-                  key={r.id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06 }}
-                  className="card-fun p-5 flex items-center gap-4 flex-wrap"
-                >
-                  <div className="text-4xl">{r.testEmoji || "📝"}</div>
-                  <div className="flex-1 min-w-[180px]">
-                    <h3 className="font-extrabold text-purple-900">{r.testTitle}</h3>
-                    <p className="text-purple-500 text-sm font-semibold">
-                      {new Date(r.createdAt).toLocaleDateString("ar", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-extrabold text-orange-500">
-                      {r.percentage}%
-                    </div>
-                    <div className="text-xs text-purple-400 font-bold">
-                      {r.score}/{r.total}
-                    </div>
-                  </div>
-                  <span className="bg-purple-100 text-purple-700 rounded-full px-3 py-1.5 font-bold text-sm">
-                    {r.levelName}
-                  </span>
-                  {r.program && (
-                    <p className="w-full text-sm text-purple-600 font-semibold bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                      🎓 {r.program}
-                    </p>
-                  )}
-                </motion.div>
-              ))
-            )}
+          <div className="space-y-2">
+            <Label className="text-purple-900 font-bold text-base">كلمة المرور</Label>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-12 text-lg rounded-2xl border-2 border-purple-200 focus-visible:ring-purple-400 bg-purple-50/50 text-right"
+            />
+            {errors.password && <p className="text-red-500 text-sm font-semibold">{errors.password}</p>}
           </div>
-        )}
+
+          <Button
+            onClick={submitAuth}
+            disabled={loading}
+            className="btn-fun w-full bg-gradient-to-l from-purple-600 to-fuchsia-500 hover:from-purple-700 hover:to-fuchsia-600 text-white text-xl py-6 h-auto mt-4"
+            style={{ ["--btn-fun-shadow" as string]: "#6b21a8" }}
+          >
+            {loading ? "جاري الدخول..." : (authMode === "register" ? "إنشاء الحساب" : "تسجيل الدخول")}
+          </Button>
+        </div>
 
         <div className="flex justify-center mt-8">
           <Button

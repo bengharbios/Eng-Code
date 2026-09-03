@@ -31,7 +31,7 @@ interface SessionPayload {
   uid: string;
   username: string;
   name: string;
-  role: "super" | "instructor";
+  role: "super" | "instructor" | "student";
   exp: number;
 }
 

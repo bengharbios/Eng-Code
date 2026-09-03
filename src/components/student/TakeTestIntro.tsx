@@ -16,6 +16,7 @@ import {
 import { useI18n, isRtlLang } from "@/lib/i18n";
 import { playClick } from "@/lib/sounds";
 import type { PublicTest, StudentRegInfo } from "@/lib/shared-types";
+import { useSession } from "@/components/SessionProvider";
 
 const COUNTRIES = [
   "الإمارات العربية المتحدة", "السعودية", "الكويت", "قطر", "عُمان", "البحرين",
@@ -33,14 +34,18 @@ export default function TakeTestIntro({
   onBegin: (info: StudentRegInfo) => void;
 }) {
   const { t } = useI18n();
-  const [step, setStep] = useState<"intro" | "register">("intro");
+  const { user, refresh } = useSession();
+  const [step, setStep] = useState<"intro" | "auth">("intro");
+  const [authMode, setAuthMode] = useState<"login" | "register">("register");
 
-  // ===== Registration =====
+  // ===== Registration / Login =====
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [age, setAge] = useState("");
   const [country, setCountry] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
 
   const qDir = useMemo(() => (isRtlLang(test.language) ? "rtl" : "ltr"), [test.language]);
   const accredLines = test.accreditation
@@ -49,36 +54,63 @@ export default function TakeTestIntro({
 
   const validate = (): boolean => {
     const e: Record<string, string> = {};
-    if (!name.trim() || name.trim().length < 3) e.name = t("fullRequired");
     const digits = phone.replace(/\D/g, "");
     if (!digits || digits.length < 7) e.phone = t("validPhone");
-    const ageNum = parseInt(age, 10);
-    if (!age || isNaN(ageNum) || ageNum < 5 || ageNum > 99) e.age = t("validAge");
-    if (!country) e.country = t("chooseCountryErr");
+    if (!password) e.password = "كلمة المرور مطلوبة";
+    
+    if (authMode === "register") {
+      if (!name.trim() || name.trim().length < 3) e.name = t("fullRequired");
+      const ageNum = parseInt(age, 10);
+      if (!age || isNaN(ageNum) || ageNum < 5 || ageNum > 99) e.age = t("validAge");
+      if (!country) e.country = t("chooseCountryErr");
+    }
+    
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const submit = async () => {
+  const submitAuth = async () => {
     playClick();
     if (!validate()) return;
     
-    if (test.allowRetake === false) {
-      try {
-        const res = await fetch(`/api/take/${encodeURIComponent(test.slug)}/check?phone=${encodeURIComponent(phone.trim())}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (!data.canTake) {
-            setErrors({ phone: "لقد قمت بتقديم هذا الاختبار مسبقاً ولا يُسمح بإعادته." });
-            return;
-          }
-        }
-      } catch (err) {
-        // Silently proceed on network errors, the server will block if needed
+    setLoading(true);
+    try {
+      const res = await fetch("/api/student/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: authMode,
+          phone: phone.trim(),
+          password,
+          name: name.trim(),
+          age,
+          country
+        })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        if (data.error === "invalid_password") setErrors({ password: "كلمة المرور غير صحيحة" });
+        else if (data.error === "not_found") setErrors({ phone: "رقم الهاتف غير مسجل. الرجاء إنشاء حساب جديد." });
+        else if (data.error === "already_exists") setErrors({ phone: "رقم الهاتف مسجل مسبقاً. الرجاء تسجيل الدخول." });
+        else setErrors({ phone: "حدث خطأ أثناء الاتصال. يرجى المحاولة مرة أخرى." });
+        return;
       }
+      
+      await refresh();
+      onBegin({ name: data.student.name, phone: data.student.phone, age: data.student.age.toString(), country: data.student.country });
+    } catch (e) {
+      setErrors({ phone: "تعذر الاتصال بالخادم." });
+    } finally {
+      setLoading(false);
     }
+  };
 
-    onBegin({ name: name.trim(), phone: phone.trim(), age, country });
+  const submitAlreadyLoggedIn = async () => {
+    playClick();
+    if (!user) return;
+    // user.username holds the phone number for students
+    onBegin({ name: user.name, phone: user.username, age: "0", country: "" }); 
   };
 
   return (
@@ -151,17 +183,27 @@ export default function TakeTestIntro({
               </motion.div>
             )}
 
-            <div className="flex justify-center mt-8">
-              <Button
-                onClick={() => {
-                  playClick();
-                  setStep("register");
-                }}
-                className="btn-fun bg-gradient-to-l from-orange-500 to-amber-400 text-white text-2xl px-14 py-7 h-auto"
-                style={{ ["--btn-fun-shadow" as string]: "#c2410c" }}
-              >
-                {t("startNow")}
-              </Button>
+            <div className="flex justify-center mt-8 gap-4 flex-col sm:flex-row items-center">
+              {user && user.role === "student" ? (
+                <Button
+                  onClick={submitAlreadyLoggedIn}
+                  className="btn-fun bg-gradient-to-l from-orange-500 to-amber-400 text-white text-2xl px-14 py-7 h-auto"
+                  style={{ ["--btn-fun-shadow" as string]: "#c2410c" }}
+                >
+                  الدخول للاختبار باسم {user.name}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => {
+                    playClick();
+                    setStep("auth");
+                  }}
+                  className="btn-fun bg-gradient-to-l from-orange-500 to-amber-400 text-white text-2xl px-14 py-7 h-auto"
+                  style={{ ["--btn-fun-shadow" as string]: "#c2410c" }}
+                >
+                  {t("startNow")}
+                </Button>
+              )}
             </div>
           </motion.div>
         ) : (
@@ -193,15 +235,32 @@ export default function TakeTestIntro({
             </div>
 
             <div className="card-fun p-6 sm:p-8 space-y-5">
-              <div className="space-y-2">
-                <Label className="text-purple-900 font-bold text-base">{t("fullName")}</Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="h-12 text-lg rounded-2xl border-2 border-purple-200 focus-visible:ring-purple-400 bg-purple-50/50"
-                />
-                {errors.name && <p className="text-red-500 text-sm font-semibold">{errors.name}</p>}
+              <div className="flex bg-purple-100 rounded-2xl p-1 mb-4">
+                <button
+                  onClick={() => { setAuthMode("login"); setErrors({}); }}
+                  className={`flex-1 py-3 text-lg font-bold rounded-xl transition-all ${authMode === "login" ? "bg-white text-purple-900 shadow-sm" : "text-purple-500 hover:bg-purple-200/50"}`}
+                >
+                  تسجيل الدخول
+                </button>
+                <button
+                  onClick={() => { setAuthMode("register"); setErrors({}); }}
+                  className={`flex-1 py-3 text-lg font-bold rounded-xl transition-all ${authMode === "register" ? "bg-white text-purple-900 shadow-sm" : "text-purple-500 hover:bg-purple-200/50"}`}
+                >
+                  حساب جديد
+                </button>
               </div>
+
+              {authMode === "register" && (
+                <div className="space-y-2">
+                  <Label className="text-purple-900 font-bold text-base">{t("fullName")}</Label>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="h-12 text-lg rounded-2xl border-2 border-purple-200 focus-visible:ring-purple-400 bg-purple-50/50"
+                  />
+                  {errors.name && <p className="text-red-500 text-sm font-semibold">{errors.name}</p>}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label className="text-purple-900 font-bold text-base">{t("phoneLabel")}</Label>
@@ -216,44 +275,58 @@ export default function TakeTestIntro({
                 {errors.phone && <p className="text-red-500 text-sm font-semibold">{errors.phone}</p>}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <Label className="text-purple-900 font-bold text-base">{t("age")}</Label>
-                  <Input
-                    value={age}
-                    onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 2))}
-                    placeholder="10"
-                    inputMode="numeric"
-                    className="h-12 text-lg rounded-2xl border-2 border-purple-200 focus-visible:ring-purple-400 bg-purple-50/50"
-                  />
-                  {errors.age && <p className="text-red-500 text-sm font-semibold">{errors.age}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-purple-900 font-bold text-base">{t("country")}</Label>
-                  <Select value={country} onValueChange={setCountry}>
-                    <SelectTrigger className="h-12 text-lg rounded-2xl border-2 border-purple-200 bg-purple-50/50">
-                      <SelectValue placeholder={t("chooseCountry")} />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-64">
-                      {COUNTRIES.map((c) => (
-                        <SelectItem key={c} value={c} className="text-base">
-                          {c}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.country && (
-                    <p className="text-red-500 text-sm font-semibold">{errors.country}</p>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <Label className="text-purple-900 font-bold text-base">كلمة المرور</Label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-12 text-lg rounded-2xl border-2 border-purple-200 focus-visible:ring-purple-400 bg-purple-50/50 text-right"
+                />
+                {errors.password && <p className="text-red-500 text-sm font-semibold">{errors.password}</p>}
               </div>
 
+              {authMode === "register" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label className="text-purple-900 font-bold text-base">{t("age")}</Label>
+                    <Input
+                      value={age}
+                      onChange={(e) => setAge(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                      placeholder="10"
+                      inputMode="numeric"
+                      className="h-12 text-lg rounded-2xl border-2 border-purple-200 focus-visible:ring-purple-400 bg-purple-50/50"
+                    />
+                    {errors.age && <p className="text-red-500 text-sm font-semibold">{errors.age}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-purple-900 font-bold text-base">{t("country")}</Label>
+                    <Select value={country} onValueChange={setCountry}>
+                      <SelectTrigger className="h-12 text-lg rounded-2xl border-2 border-purple-200 bg-purple-50/50">
+                        <SelectValue placeholder={t("chooseCountry")} />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-64">
+                        {COUNTRIES.map((c) => (
+                          <SelectItem key={c} value={c} className="text-base">
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.country && (
+                      <p className="text-red-500 text-sm font-semibold">{errors.country}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <Button
-                onClick={submit}
+                onClick={submitAuth}
+                disabled={loading}
                 className="btn-fun w-full bg-gradient-to-l from-purple-600 to-fuchsia-500 hover:from-purple-700 hover:to-fuchsia-600 text-white text-xl py-6 h-auto"
                 style={{ ["--btn-fun-shadow" as string]: "#6b21a8" }}
               >
-                {t("doneStart")}
+                {loading ? "جاري الدخول..." : (authMode === "register" ? "إنشاء حساب وبدء الاختبار" : "دخول وبدء الاختبار")}
               </Button>
 
               <p className="text-center text-xs text-purple-400 font-semibold">
