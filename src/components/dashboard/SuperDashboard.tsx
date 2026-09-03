@@ -439,7 +439,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
 
           {/* ===== All results ===== */}
           {tab === "results" && (
-            <AttemptsTable attempts={attempts} loading={false} showTest exportTestId="all" />
+            <AttemptsTable attempts={attempts} loading={false} showTest exportTestId="all" onRefresh={loadAll} />
           )}
         </>
       )}

@@ -59,9 +59,25 @@ export default function TakeTestIntro({
     return Object.keys(e).length === 0;
   };
 
-  const submit = () => {
+  const submit = async () => {
     playClick();
     if (!validate()) return;
+    
+    if (test.allowRetake === false) {
+      try {
+        const res = await fetch(`/api/take/${encodeURIComponent(test.slug)}/check?phone=${encodeURIComponent(phone.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!data.canTake) {
+            setErrors({ phone: "لقد قمت بتقديم هذا الاختبار مسبقاً ولا يُسمح بإعادته." });
+            return;
+          }
+        }
+      } catch (err) {
+        // Silently proceed on network errors, the server will block if needed
+      }
+    }
+
     onBegin({ name: name.trim(), phone: phone.trim(), age, country });
   };
 

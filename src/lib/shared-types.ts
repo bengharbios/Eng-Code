@@ -21,6 +21,7 @@ export interface PublicTest {
   emoji: string;
   color: string;
   timeLimitMin: number;
+  allowRetake: boolean;
   accreditation: string;
   ownerName: string;
   questions: PublicQuestion[];
@@ -68,6 +69,7 @@ export interface AttemptRow {
   levelName: string;
   program: string;
   wantsInterview: boolean;
+  answersJson: string;
   createdAt: string;
 }
 

@@ -30,6 +30,7 @@ export async function GET(
       emoji: test.emoji,
       color: test.color,
       timeLimitMin: test.timeLimitMin,
+      allowRetake: test.allowRetake,
       accreditation: test.accreditation,
       ownerName: test.owner.name,
       questions: test.questions.map((q) => ({

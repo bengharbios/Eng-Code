@@ -156,6 +156,9 @@ export default function InstructorDashboard({ userName }: { userName: string }) 
           attempts={attempts}
           loading={attemptsLoading}
           exportTestId={resultsTestId ?? "all"}
+          onRefresh={() => {
+            if (resultsTestId) loadResults(resultsTestId);
+          }}
         />
       </div>
     );

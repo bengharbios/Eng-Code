@@ -190,6 +190,7 @@ export async function GET(req: NextRequest) {
           levelName: a.levelName,
           program: a.program,
           wantsInterview: a.wantsInterview,
+          answersJson: a.answersJson,
           createdAt: a.createdAt,
         }))
       );
@@ -237,11 +238,41 @@ export async function GET(req: NextRequest) {
         levelName: a.levelName,
         program: a.program,
         wantsInterview: a.wantsInterview,
+        answersJson: a.answersJson,
         createdAt: a.createdAt,
       }))
     );
   } catch (err) {
     console.error("GET /api/attempts:", err);
+    return NextResponse.json({ error: "server" }, { status: 500 });
+  }
+}
+
+// DELETE /api/attempts — delete an attempt (instructor or super)
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "bad" }, { status: 400 });
+
+    const attempt = await db.attempt.findUnique({
+      where: { id },
+      include: { test: { select: { ownerId: true } } }
+    });
+
+    if (!attempt) return NextResponse.json({ error: "not_found" }, { status: 404 });
+
+    if (session.role !== "super" && attempt.test.ownerId !== session.uid) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
+    await db.attempt.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("DELETE /api/attempts:", err);
     return NextResponse.json({ error: "server" }, { status: 500 });
   }
 }

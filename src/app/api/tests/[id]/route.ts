@@ -48,6 +48,7 @@ export async function GET(
       levelTag: test.levelTag,
       passPercent: test.passPercent,
       timeLimitMin: test.timeLimitMin,
+      allowRetake: test.allowRetake,
       accreditation: test.accreditation,
       outcomes: test.outcomesJson ? JSON.parse(test.outcomesJson) : null,
       ownerName: test.owner.name,
@@ -104,6 +105,7 @@ export async function PATCH(
       data.passPercent = Math.min(100, Math.max(0, Number(body.passPercent) || 50));
     if (body.timeLimitMin !== undefined)
       data.timeLimitMin = Math.max(0, Math.min(180, Number(body.timeLimitMin) || 0));
+    if (body.allowRetake !== undefined) data.allowRetake = Boolean(body.allowRetake);
     if (body.accreditation !== undefined)
       data.accreditation = String(body.accreditation).slice(0, 3000);
     if (body.outcomes !== undefined)

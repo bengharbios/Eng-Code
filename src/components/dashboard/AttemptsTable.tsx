@@ -4,6 +4,9 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 import type { AttemptRow } from "@/lib/shared-types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const LEVEL_COLORS: Record<string, string> = {
   A1: "#22c55e", A2: "#14b8a6", B1: "#f59e0b", B2: "#f97316", C1: "#8b5cf6",
@@ -22,8 +25,13 @@ export default function AttemptsTable({
   showTest?: boolean;
   exportTestId?: string;
   emptyNote?: string;
+  onRefresh?: () => void;
 }) {
   const { t } = useI18n();
+  const { toast } = useToast();
+  
+  const [viewAttempt, setViewAttempt] = useState<any>(null);
+  const [loadingAttempt, setLoadingAttempt] = useState(false);
 
   const stats = useMemo(() => {
     if (attempts.length === 0) return null;
@@ -34,6 +42,35 @@ export default function AttemptsTable({
     const uniqueStudents = new Set(attempts.map((x) => x.phone)).size;
     return { avg, interviews, uniqueStudents, total: attempts.length };
   }, [attempts]);
+
+  const deleteAttempt = async (id: string, name: string) => {
+    if (!confirm(`هل أنت متأكد من حذف محاولة الطالب ${name}؟`)) return;
+    const res = await fetch(`/api/attempts?id=${id}`, { method: "DELETE" });
+    if (res.ok) {
+      toast({ title: "تم حذف المحاولة" });
+      onRefresh?.();
+    } else {
+      toast({ title: "حدث خطأ أثناء الحذف", variant: "destructive" });
+    }
+  };
+
+  const openAnswers = async (id: string) => {
+    setLoadingAttempt(true);
+    setViewAttempt({ loading: true });
+    try {
+      const res = await fetch(`/api/attempts/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setViewAttempt(data);
+      } else {
+        toast({ title: "تعذر جلب تفاصيل الإجابات", variant: "destructive" });
+        setViewAttempt(null);
+      }
+    } catch (err) {
+      setViewAttempt(null);
+    }
+    setLoadingAttempt(false);
+  };
 
   return (
     <div className="space-y-4">
@@ -84,6 +121,7 @@ export default function AttemptsTable({
                 <th className="p-3 text-right font-extrabold">{t("level")}</th>
                 <th className="p-3 text-right font-extrabold">{t("interviewCol")}</th>
                 <th className="p-3 text-right font-extrabold">{t("date")}</th>
+                <th className="p-3 text-right font-extrabold">إجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -163,6 +201,23 @@ export default function AttemptsTable({
                         minute: "2-digit",
                       })}
                     </td>
+                    <td className="p-3">
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => openAnswers(a.id)}
+                          className="rounded bg-purple-100 hover:bg-purple-200 text-purple-700 px-2 py-1 text-xs font-bold whitespace-nowrap"
+                        >
+                          إجابات الطالب
+                        </button>
+                        <button
+                          onClick={() => deleteAttempt(a.id, a.name)}
+                          className="rounded bg-red-50 hover:bg-red-100 text-red-500 px-2 py-1 text-xs font-bold"
+                          title="حذف المحاولة للسماح للطالب بالإعادة"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -170,6 +225,54 @@ export default function AttemptsTable({
           </table>
         </div>
       </div>
+
+      <Dialog open={!!viewAttempt} onOpenChange={(open) => !open && setViewAttempt(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-extrabold text-purple-900">
+              إجابات الطالب {viewAttempt?.student?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {viewAttempt?.loading ? (
+            <div className="flex justify-center py-10">
+              <span className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500" />
+            </div>
+          ) : viewAttempt?.test ? (
+            <div className="space-y-6 mt-4">
+              {viewAttempt.test.questions.map((q: any, idx: number) => {
+                const parsedAnswers = JSON.parse(viewAttempt.answersJson || "[]");
+                const ans = parsedAnswers.find((x: any) => x.questionId === q.id);
+                const options = JSON.parse(q.optionsJson || "[]");
+                const chosenOpt = ans !== undefined ? options[ans.selected] : null;
+                const isCorrect = viewAttempt.test.kind === "points" ? ans?.selected === q.answerIndex : true;
+                
+                return (
+                  <div key={q.id} className="p-4 rounded-xl border border-purple-100 bg-purple-50/50">
+                    <p className="font-extrabold text-purple-900 mb-2">
+                      <span className="text-purple-500 ml-1">{idx + 1}.</span>
+                      {q.text}
+                    </p>
+                    <div className="text-sm font-semibold mt-2 p-2 rounded bg-white border border-purple-100">
+                      <span className="text-purple-500 ml-2">الإجابة المختارة:</span>
+                      <span className={viewAttempt.test.kind === "points" ? (isCorrect ? "text-emerald-600" : "text-red-600") : "text-purple-900"}>
+                        {chosenOpt ? chosenOpt.text : "لم يجب"}
+                      </span>
+                      {viewAttempt.test.kind === "points" && ans?.selected !== q.answerIndex && (
+                        <div className="mt-1 text-emerald-600">
+                          <span className="text-purple-500 ml-2">الإجابة الصحيحة:</span>
+                          {options[q.answerIndex]?.text}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-4 text-center text-red-500 font-bold">تعذر تحميل الإجابات</div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

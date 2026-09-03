@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, TEST_LANGUAGES } from "@/lib/i18n";
 import { playClick } from "@/lib/sounds";
@@ -85,6 +86,7 @@ export default function TestEditor({
   const [levelTag, setLevelTag] = useState("general");
   const [passPercent, setPassPercent] = useState(50);
   const [timeLimitMin, setTimeLimitMin] = useState(0);
+  const [allowRetake, setAllowRetake] = useState(true);
   const [accreditation, setAccreditation] = useState("");
   const [questions, setQuestions] = useState<QItem[]>([emptyQuestion("points")]);
   const [outcomes, setOutcomes] = useState<OutcomesDoc>({
@@ -111,6 +113,7 @@ export default function TestEditor({
         setLevelTag(d.levelTag);
         setPassPercent(d.passPercent);
         setTimeLimitMin(d.timeLimitMin);
+        setAllowRetake(d.allowRetake ?? true);
         setAccreditation(d.accreditation);
         setQuestions(
           (d.questions || []).map(
@@ -224,6 +227,7 @@ export default function TestEditor({
         levelTag,
         passPercent,
         timeLimitMin,
+        allowRetake,
         accreditation,
         outcomes: kind === "diagnostic" ? outcomes : null,
         questions: questions.map((q) => ({
@@ -336,6 +340,13 @@ export default function TestEditor({
           <div className="space-y-2">
             <Label className="font-bold text-purple-900">{t("timeLimit")}</Label>
             <Input type="number" min={0} max={180} value={timeLimitMin} onChange={(e) => setTimeLimitMin(Number(e.target.value))} className="h-11 rounded-2xl border-2 border-purple-200" />
+          </div>
+          <div className="flex flex-col justify-center space-y-2 pt-2">
+            <Label className="font-bold text-purple-900">يسمح للطالب بإعادة الاختبار؟</Label>
+            <div className="flex items-center gap-3">
+              <Switch checked={allowRetake} onCheckedChange={setAllowRetake} />
+              <span className="text-sm text-purple-600 font-semibold">{allowRetake ? "نعم" : "لا (مرة واحدة فقط)"}</span>
+            </div>
           </div>
           <div className="space-y-2">
             <Label className="font-bold text-purple-900">{t("emoji")}</Label>
