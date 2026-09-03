@@ -12,12 +12,17 @@ const tUrl = process.env.TURSO_DATABASE_URL;
 const tAuth = process.env.TURSO_AUTH_TOKEN;
 
 if (tUrl && tUrl !== "undefined" && tAuth && tAuth !== "undefined") {
-  const libsql = createClient({
-    url: tUrl,
-    authToken: tAuth,
-  })
-  const adapter = new PrismaLibSQL(libsql)
-  prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter, log: ['query'] })
+  try {
+    const libsql = createClient({
+      url: tUrl.replace(/"/g, '').trim(),
+      authToken: tAuth.replace(/"/g, '').trim(),
+    })
+    const adapter = new PrismaLibSQL(libsql)
+    prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter, log: ['query'] })
+  } catch (e) {
+    console.error("Libsql init error:", e);
+    prisma = globalForPrisma.prisma ?? new PrismaClient({ log: ['query'] })
+  }
 } else {
   prisma = globalForPrisma.prisma ?? new PrismaClient({ log: ['query'] })
 }
