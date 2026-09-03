@@ -531,7 +531,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                                     onClick={() => resetStudentPassword(s)}
                                     className="rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-xs px-2.5 py-1.5 whitespace-nowrap"
                                   >
-                                    🔑 مسح الكلمة
+                                    🔑 مسح كلمة المرور
                                   </button>
                                 )}
                                 <button
