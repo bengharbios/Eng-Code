@@ -35,7 +35,7 @@ interface AllTest {
   attemptsCount: number;
 }
 
-type Tab = "overview" | "instructors" | "tests" | "results" | "editor";
+type Tab = "overview" | "instructors" | "tests" | "results" | "students" | "editor";
 
 export default function SuperDashboard({ userName }: { userName: string }) {
   const { t } = useI18n();
@@ -44,6 +44,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [tests, setTests] = useState<AllTest[]>([]);
   const [attempts, setAttempts] = useState<AttemptRow[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -55,14 +56,16 @@ export default function SuperDashboard({ userName }: { userName: string }) {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [u, tt, a] = await Promise.all([
+      const [u, tt, a, s] = await Promise.all([
         fetch("/api/instructors", { cache: "no-store" }),
         fetch("/api/tests", { cache: "no-store" }),
         fetch("/api/attempts", { cache: "no-store" }),
+        fetch("/api/admin/students", { cache: "no-store" }),
       ]);
       if (u.ok) setUsers(await u.json());
       if (tt.ok) setTests(await tt.json());
       if (a.ok) setAttempts(await a.json());
+      if (s.ok) setStudents(await s.json());
     } finally {
       setLoading(false);
     }
@@ -186,8 +189,30 @@ export default function SuperDashboard({ userName }: { userName: string }) {
     );
   }
 
+  const resetStudentPassword = async (s: any) => {
+    if (!confirm(`هل تريد مسح كلمة مرور الطالب ${s.name}؟ سيتمكن من إنشاء كلمة جديدة في الدخول القادم.`)) return;
+    const res = await fetch(`/api/admin/students/${s.id}`, { method: "PATCH" });
+    if (res.ok) {
+      toast({ title: `✅ تم مسح كلمة مرور ${s.name}` });
+      loadAll();
+    } else {
+      toast({ title: "حدث خطأ", variant: "destructive" });
+    }
+  };
+
+  const deleteStudent = async (s: any) => {
+    if (!confirm(`⚠️ هل تريد حذف حساب ${s.name} نهائياً؟ سيتم حذف جميع محاولاته أيضاً.`)) return;
+    const res = await fetch(`/api/admin/students/${s.id}`, { method: "DELETE" });
+    if (res.ok) {
+      toast({ title: `🗑️ تم حذف حساب ${s.name}` });
+      loadAll();
+    } else {
+      toast({ title: "حدث خطأ", variant: "destructive" });
+    }
+  };
+
   const interviews = attempts.filter((a) => a.wantsInterview).length;
-  const students = new Set(attempts.map((a) => a.phone)).size;
+  const uniqueStudents = new Set(attempts.map((a) => a.phone)).size;
 
   return (
     <div className="px-4 py-6 max-w-6xl mx-auto w-full">
@@ -208,6 +233,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
             ["instructors", t("instructors")],
             ["tests", t("allTests")],
             ["results", t("allResults")],
+            ["students", `👥 الطلبة`],
           ] as [Tab, string][]
         ).map(([key, label]) => (
           <button
@@ -250,7 +276,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                 {[
                   { label: t("usersCount"), value: users.length, emoji: "🧑‍🏫", bg: "bg-purple-100" },
                   { label: t("testsCount"), value: tests.length, emoji: "🧩", bg: "bg-amber-100" },
-                  { label: "طلبة فريدون", value: students, emoji: "🧑‍🎓", bg: "bg-orange-100" },
+                  { label: "طلبة فريدون", value: uniqueStudents, emoji: "🧑‍🎓", bg: "bg-orange-100" },
                   { label: t("interviewReq"), value: interviews, emoji: "🎥", bg: "bg-teal-100" },
                 ].map((s, i) => (
                   <div key={i} className={`card-fun p-5 ${s.bg} bg-opacity-60`}>
@@ -440,6 +466,90 @@ export default function SuperDashboard({ userName }: { userName: string }) {
           {/* ===== All results ===== */}
           {tab === "results" && (
             <AttemptsTable attempts={attempts} loading={false} showTest exportTestId="all" onRefresh={loadAll} />
+          )}
+
+          {/* ===== Students ===== */}
+          {tab === "students" && (
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-extrabold text-purple-900">👥 إدارة حسابات الطلبة</h2>
+                <span className="text-sm font-bold text-purple-500 bg-purple-100 px-3 py-1 rounded-full">
+                  {students.length} طالب
+                </span>
+              </div>
+
+              <div className="card-fun p-2 sm:p-4 overflow-hidden">
+                <div className="overflow-x-auto max-h-[60vh] overflow-y-auto rounded-xl">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-purple-50 z-10">
+                      <tr className="text-purple-900">
+                        <th className="p-3 text-right font-extrabold">الاسم</th>
+                        <th className="p-3 text-right font-extrabold">الهاتف</th>
+                        <th className="p-3 text-right font-extrabold">العمر</th>
+                        <th className="p-3 text-right font-extrabold">الدولة</th>
+                        <th className="p-3 text-right font-extrabold">المحاولات</th>
+                        <th className="p-3 text-right font-extrabold">كلمة المرور</th>
+                        <th className="p-3 text-right font-extrabold">إجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {students.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="text-center py-10 text-purple-400 font-bold">لا يوجد طلبة</td>
+                        </tr>
+                      ) : (
+                        students.map((s) => (
+                          <tr key={s.id} className="border-t border-purple-50 hover:bg-purple-50/50">
+                            <td className="p-3 font-bold text-purple-900">{s.name}</td>
+                            <td className="p-3">
+                              <div className="flex items-center gap-1.5" dir="ltr">
+                                <a href={`tel:${s.phone}`} className="w-7 h-7 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center text-sm">📞</a>
+                                <a href={`https://wa.me/${s.phone.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="w-7 h-7 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-sm">💬</a>
+                                <span className="font-semibold text-purple-700 text-xs whitespace-nowrap">{s.phone}</span>
+                              </div>
+                            </td>
+                            <td className="p-3 text-purple-700 font-semibold">{s.age || "—"}</td>
+                            <td className="p-3 text-purple-700 font-semibold">{s.country || "—"}</td>
+                            <td className="p-3 text-center">
+                              <span className="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-xs">{s.attemptsCount}</span>
+                            </td>
+                            <td className="p-3 text-center">
+                              {s.hasPassword ? (
+                                <span className="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full text-xs">✅ مُعيَّنة</span>
+                              ) : (
+                                <span className="bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-full text-xs">⚠️ لا يوجد</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex gap-1.5">
+                                {s.hasPassword && (
+                                  <button
+                                    onClick={() => resetStudentPassword(s)}
+                                    className="rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-xs px-2.5 py-1.5 whitespace-nowrap"
+                                  >
+                                    🔑 مسح الكلمة
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => deleteStudent(s)}
+                                  className="rounded-lg bg-red-50 hover:bg-red-100 text-red-500 font-bold text-xs px-2.5 py-1.5"
+                                >
+                                  🗑️ حذف
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
           )}
         </>
       )}

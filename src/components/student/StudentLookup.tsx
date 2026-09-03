@@ -198,6 +198,15 @@ export default function StudentLookup({ onBack }: { onBack: () => void }) {
                   </button>
                 </div>
                 {errors.password && <p className="text-red-500 text-sm font-semibold">{errors.password}</p>}
+                {phoneState === "exists_with_password" && (
+                  <button
+                    type="button"
+                    onClick={() => alert("نسيت كلمة المرور؟\n\nتواصل مع المعهد وسيقوم المسؤول بمسح كلمة مرورك، ثم عند دخولك التالي ستتمكن من إنشاء كلمة مرور جديدة.\n\nيمكنك التواصل عبر واتساب أو الاتصال بنا.")}
+                    className="text-sm text-purple-400 hover:text-purple-600 font-semibold mt-1 text-right w-full"
+                  >
+                    نسيت كلمة المرور؟ 🔑
+                  </button>
+                )}
               </div>
 
               {errors.form && <p className="text-red-500 text-sm font-bold text-center">{errors.form}</p>}
