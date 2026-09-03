@@ -89,6 +89,14 @@ CREATE TABLE IF NOT EXISTS "Attempt" (
 
     return NextResponse.json({ success: true, message: "Tables created successfully!" });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: String(err),
+      debug: {
+        tUrl: process.env.TURSO_DATABASE_URL || "MISSING",
+        tUrlLen: process.env.TURSO_DATABASE_URL?.length || 0,
+        tAuth: process.env.TURSO_AUTH_TOKEN ? "PRESENT" : "MISSING",
+      }
+    }, { status: 500 });
   }
 }
