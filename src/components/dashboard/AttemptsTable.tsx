@@ -255,12 +255,12 @@ export default function AttemptsTable({
                     <div className="text-sm font-semibold mt-2 p-2 rounded bg-white border border-purple-100">
                       <span className="text-purple-500 ml-2">الإجابة المختارة:</span>
                       <span className={viewAttempt.test.kind === "points" ? (isCorrect ? "text-emerald-600" : "text-red-600") : "text-purple-900"}>
-                        {chosenOpt ? chosenOpt.text : "لم يجب"}
+                        {ans !== undefined ? (typeof chosenOpt === "string" ? chosenOpt : (chosenOpt?.text || "غير معروف")) : "لم يجب"}
                       </span>
                       {viewAttempt.test.kind === "points" && ans?.selected !== q.answerIndex && (
                         <div className="mt-1 text-emerald-600">
                           <span className="text-purple-500 ml-2">الإجابة الصحيحة:</span>
-                          {options[q.answerIndex]?.text}
+                          {typeof options[q.answerIndex] === "string" ? options[q.answerIndex] : options[q.answerIndex]?.text}
                         </div>
                       )}
                     </div>

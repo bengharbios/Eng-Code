@@ -216,11 +216,14 @@ export default function StudentPortal({ onBack }: { onBack?: () => void }) {
             ) : (
               <div className="space-y-6">
                 {attemptDetails.test.questions.map((q: any, idx: number) => {
-                  let parsedAns: any = {};
+                  let parsedAns: any[] = [];
                   try {
-                    parsedAns = JSON.parse(attemptDetails.answersJson || "{}");
+                    parsedAns = JSON.parse(attemptDetails.answersJson || "[]");
                   } catch {}
-                  const selectedIdx = parsedAns[q.id];
+                  
+                  const ansObj = parsedAns.find((x: any) => x.questionId === q.id);
+                  const selectedIdx = ansObj?.selected;
+                  
                   let parsedOptions: any[] = [];
                   try {
                     parsedOptions = JSON.parse(q.optionsJson || "[]");
@@ -228,6 +231,9 @@ export default function StudentPortal({ onBack }: { onBack?: () => void }) {
 
                   const isCorrect = selectedIdx === q.answerIndex;
                   const isDiagnostic = attemptDetails.test.kind === "diagnostic";
+                  const isPoints = attemptDetails.test.kind === "points";
+                  
+                  const chosenOpt = selectedIdx !== undefined ? parsedOptions[selectedIdx] : undefined;
 
                   return (
                     <Card key={q.id} className="border-purple-200 overflow-hidden shadow-sm">
@@ -238,10 +244,17 @@ export default function StudentPortal({ onBack }: { onBack?: () => void }) {
                             <span className="text-purple-400 ml-2">{idx + 1}.</span>
                             {q.text}
                           </h4>
-                          {!isDiagnostic && (
-                            <span className={`text-sm font-bold px-2 py-1 rounded-md ${isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                              {isCorrect ? 'صحيح' : 'خاطئ'}
-                            </span>
+                        </div>
+                        <div className="text-sm font-semibold mt-2 p-2 rounded bg-white border border-purple-100">
+                          <span className="text-purple-500 ml-2">الإجابة المختارة:</span>
+                          <span className={isPoints ? (isCorrect ? "text-emerald-600" : "text-red-600") : "text-purple-900"}>
+                            {ansObj !== undefined ? (typeof chosenOpt === "string" ? chosenOpt : (chosenOpt?.text || "غير معروف")) : "لم يجب"}
+                          </span>
+                          {isPoints && selectedIdx !== q.answerIndex && (
+                            <div className="mt-1 text-emerald-600">
+                              <span className="text-purple-500 ml-2">الإجابة الصحيحة:</span>
+                              {typeof parsedOptions[q.answerIndex] === "string" ? parsedOptions[q.answerIndex] : parsedOptions[q.answerIndex]?.text}
+                            </div>
                           )}
                         </div>
                         {q.passage && (
@@ -265,7 +278,7 @@ export default function StudentPortal({ onBack }: { onBack?: () => void }) {
 
                             return (
                               <div key={oIdx} className={`p-3 rounded-xl border-2 flex items-center justify-between ${bgClass}`}>
-                                <span className="font-semibold">{opt.text}</span>
+                                <span className="font-semibold">{typeof opt === "string" ? opt : opt.text}</span>
                                 {isSelected && <span>{isDiagnostic ? '🎯' : (isActualCorrect ? '✅' : '❌')}</span>}
                                 {isActualCorrect && !isSelected && <span>✅</span>}
                               </div>
