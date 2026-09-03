@@ -1,119 +1,125 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import WelcomeScreen from "@/components/quiz/WelcomeScreen";
-import RegisterForm from "@/components/quiz/RegisterForm";
-import QuizScreen, { type QuizResult } from "@/components/quiz/QuizScreen";
-import ResultScreen from "@/components/quiz/ResultScreen";
-import AdminDashboard from "@/components/quiz/AdminDashboard";
+import Header from "@/components/Header";
 import FunBackground from "@/components/quiz/FunBackground";
+import HomeScreen from "@/components/student/HomeScreen";
+import TakeTest from "@/components/student/TakeTest";
+import StudentLookup from "@/components/student/StudentLookup";
+import LoginView from "@/components/admin/LoginView";
+import InstructorDashboard from "@/components/dashboard/InstructorDashboard";
+import SuperDashboard from "@/components/dashboard/SuperDashboard";
+import { I18nProvider } from "@/lib/i18n";
+import { SessionProvider, useSession } from "@/components/SessionProvider";
 
-type View = "welcome" | "register" | "quiz" | "result" | "admin";
+type View = "home" | "take" | "student" | "login" | "instructor" | "super";
 
-interface StudentInfo {
-  id: string;
-  name: string;
-}
+function AppShell() {
+  const { user, loading: sessionLoading } = useSession();
+  const [view, setView] = useState<View>("home");
+  const [takeSlug, setTakeSlug] = useState<string | null>(null);
 
-export default function Home() {
-  const [view, setView] = useState<View>("welcome");
-  const [student, setStudent] = useState<StudentInfo | null>(null);
-  const [result, setResult] = useState<QuizResult | null>(null);
+  // Deep link: /?t=slug (works on any domain incl. Vercel)
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    const t = sp.get("t");
+    if (t) {
+      // async to avoid synchronous setState in effect (hydration-safe)
+      const id = requestAnimationFrame(() => {
+        setTakeSlug(t);
+        setView("take");
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, []);
+
+  const goDashboard = useCallback(() => {
+    if (!user) {
+      setView("login");
+      return;
+    }
+    setView(user.role === "super" ? "super" : "instructor");
+  }, [user]);
+
+  const openTake = useCallback((slug: string) => {
+    window.history.replaceState(null, "", `/?t=${slug}`);
+    setTakeSlug(slug);
+    setView("take");
+  }, []);
+
+  const goHome = useCallback(() => {
+    window.history.replaceState(null, "", "/");
+    setView("home");
+  }, []);
+
+  // Show login gate if accessing dashboards while logged out
+  const effectiveView: View =
+    (view === "instructor" || view === "super") && !sessionLoading && !user
+      ? "login"
+      : view;
 
   const views: Record<View, React.ReactNode> = {
-    welcome: <WelcomeScreen onStart={() => setView("register")} />,
-    register: (
-      <RegisterForm
-        onSuccess={(id, name) => {
-          setStudent({ id, name });
-          setView("quiz");
-        }}
+    home: <HomeScreen onTake={openTake} onLogin={() => setView("login")} />,
+    take: takeSlug ? (
+      <TakeTest slug={takeSlug} onBack={goHome} />
+    ) : null,
+    student: <StudentLookup onBack={goHome} />,
+    login: (
+      <LoginView
+        onBack={goHome}
+        onSuccess={(role) => setView(role === "super" ? "super" : "instructor")}
       />
     ),
-    quiz: student ? (
-      <QuizScreen
-        studentName={student.name}
-        studentId={student.id}
-        onFinish={(r) => {
-          setResult(r);
-          setView("result");
-        }}
-      />
-    ) : null,
-    result: result && student ? (
-      <ResultScreen
-        result={result}
-        studentId={student.id}
-        studentName={student.name}
-        onRetake={() => {
-          setResult(null);
-          setView("welcome");
-        }}
-      />
-    ) : null,
-    admin: <AdminDashboard onBack={() => setView("welcome")} />,
+    instructor: user ? <InstructorDashboard userName={user.name} /> : null,
+    super: user ? <SuperDashboard userName={user.name} /> : null,
   };
 
   return (
     <main className="relative min-h-screen flex flex-col">
       <FunBackground />
+      <Header
+        onHome={goHome}
+        onLogin={() => setView("login")}
+        onStudent={() => setView("student")}
+        onDashboard={goDashboard}
+      />
 
-      {/* Top bar */}
-      <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-md border-b-2 border-purple-100">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <button
-            onClick={() => setView(student && result ? "result" : "welcome")}
-            className="flex items-center gap-2 group"
-          >
-            <span className="text-3xl group-hover:scale-110 transition-transform">
-              🦉
-            </span>
-            <span className="font-extrabold text-xl text-purple-900">
-              مغامرة المستوى
-            </span>
-          </button>
-          <span className="hidden sm:inline-flex items-center gap-1.5 bg-purple-100 text-purple-700 font-bold rounded-full px-4 py-1.5 text-sm">
-            🎓 ويبينار {new Date().getFullYear()} — اختبار تحديد المستوى
-          </span>
-        </div>
-      </header>
-
-      {/* Views */}
       <div className="flex-1">
         <AnimatePresence mode="wait">
           <motion.div
-            key={view}
+            key={effectiveView + (takeSlug ?? "")}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -14 }}
             transition={{ duration: 0.25 }}
           >
-            {views[view]}
+            {views[effectiveView]}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Floating admin button */}
-      {view !== "admin" && (
-        <button
-          onClick={() => setView("admin")}
-          className="fixed bottom-4 left-4 z-30 flex items-center gap-2 bg-white/90 backdrop-blur border-2 border-purple-200 text-purple-700 font-bold rounded-full px-4 py-2.5 shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm"
-          title="لوحة تحكم المشرف"
-        >
-          🔐 الإدارة
-        </button>
-      )}
-
-      {/* Footer */}
       <footer className="mt-auto bg-purple-900 text-purple-200 py-4 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm font-semibold">
-          <span>🦉 مغامرة المستوى — اختبار تفاعلي لتحديد مستوى اللغة الإنجليزية</span>
+          <span>
+            🦉 {`مغامرة المستوى`} — منصة الاختبارات التعليمية التفاعلية × معهد السلام
+            التثقافي
+          </span>
           <span>
             للتواصل الأكاديمي: <span dir="ltr">042899688</span> 📞
           </span>
         </div>
       </footer>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <I18nProvider>
+      <SessionProvider>
+        <AppShell />
+      </SessionProvider>
+    </I18nProvider>
   );
 }

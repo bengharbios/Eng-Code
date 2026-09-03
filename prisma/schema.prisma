@@ -7,19 +7,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ===== Users: super admin + instructors =====
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  name         String
+  role         String   @default("instructor") // 'super' | 'instructor'
+  passwordHash String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tests        Test[]
+}
+
+// ===== Tests (placement system test + instructor-created tests) =====
+model Test {
+  id            String   @id @default(cuid())
+  slug          String   @unique // short code used in the shareable link: /?t=slug
+  title         String
+  description   String   @default("")
+  language      String   @default("ar") // language of the questions content
+  kind          String   @default("points") // 'points' (correct answers) | 'diagnostic' (letter/category based)
+  isSystem      Boolean  @default(false) // locked built-in tests (only super can edit)
+  isPublished   Boolean  @default(true)
+  emoji         String   @default("📝")
+  color         String   @default("#7c3aed")
+  levelTag      String   @default("general") // 'CEFR' | 'general'
+  passPercent   Int      @default(50)
+  timeLimitMin  Int      @default(0) // 0 = no limit
+  accreditation String   @default("") // scientific accreditation text shown in the intro
+  outcomesJson  String   @default("") // diagnostic outcomes {buckets:[{key,emoji,title,description,program,color}],tie:{...}}
+  ownerId       String
+  owner         User     @relation(fields: [ownerId], references: [id])
+  questions     Question[]
+  attempts      Attempt[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ===== Questions =====
+model Question {
+  id          String @id @default(cuid())
+  testId      String
+  test        Test   @relation(fields: [testId], references: [id], onDelete: Cascade)
+  order       Int    @default(0)
+  type        String @default("choice") // 'choice' | 'picture' | 'reading'
+  text        String
+  passage     String @default("")
+  emoji       String @default("")
+  optionsJson String // [{text, bucket?}] bucket used in diagnostic mode
+  answerIndex Int    @default(0) // correct option (points mode)
+  bucket      String @default("") // correct category label for diagnostic (unused)
+  points      Int    @default(5)
+}
+
+// ===== Students (people taking tests) =====
 model Student {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String    @unique
+  age       Int       @default(0)
+  country   String    @default("")
+  createdAt DateTime  @default(now())
+  attempts  Attempt[]
+}
+
+// ===== Attempts (results per test) =====
+model Attempt {
   id             String   @id @default(cuid())
-  name           String
-  phone          String
-  age            Int
-  country        String
+  studentId      String
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  testId         String
+  test           Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
   score          Int      @default(0)
   total          Int      @default(0)
   percentage     Float    @default(0)
-  level          String   @default("")
-  levelName      String   @default("")
+  level          String   @default("") // CEFR code or bucket key
+  levelName      String   @default("") // level title
+  program        String   @default("") // recommended program (diagnostic)
   wantsInterview Boolean  @default(false)
   answersJson    String   @default("")
   createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 }

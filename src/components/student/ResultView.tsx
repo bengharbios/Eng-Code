@@ -6,62 +6,60 @@ import confetti from "canvas-confetti";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { LEVELS, getStarsByPercent, type LevelInfo } from "@/lib/quiz-data";
-import type { QuizResult } from "./QuizScreen";
-import { ACADEMIC_PHONE, ACADEMIC_PHONE_INTL, DR_NAME } from "@/lib/config";
+import { useI18n } from "@/lib/i18n";
+import { ACADEMIC_PHONE, ACADEMIC_PHONE_INTL } from "@/lib/config";
+import type { SubmitResult } from "@/lib/shared-types";
 
-export default function ResultScreen({
+export default function ResultView({
   result,
-  studentId,
   studentName,
   onRetake,
+  onBack,
 }: {
-  result: QuizResult;
-  studentId: string;
+  result: SubmitResult;
   studentName: string;
   onRetake: () => void;
+  onBack: () => void;
 }) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const [wantsInterview, setWantsInterview] = useState(false);
   const [savingInterview, setSavingInterview] = useState(false);
-
-  const level: LevelInfo =
-    LEVELS.find((l) => l.code === result.levelCode) ?? LEVELS[0];
-  const stars = getStarsByPercent(result.percentage);
+  const level = result.level;
+  const isDiagnostic = result.mode === "diagnostic";
 
   useEffect(() => {
+    const mk = (opts: confetti.Options) =>
+      confetti({ disableForReducedMotion: true, ...opts });
     const t1 = setTimeout(
       () =>
-        confetti({
+        mk({
           particleCount: 130,
           spread: 100,
           origin: { x: 0.5, y: 0.35 },
           colors: ["#f59e0b", "#f97316", "#a855f7", "#14b8a6", "#ec4899"],
-          disableForReducedMotion: true,
         }),
       300
     );
     const t2 = setTimeout(
       () =>
-        confetti({
+        mk({
           particleCount: 80,
           angle: 60,
           spread: 60,
           origin: { x: 0, y: 0.6 },
           colors: ["#f59e0b", "#f97316", "#a855f7"],
-          disableForReducedMotion: true,
         }),
       700
     );
     const t3 = setTimeout(
       () =>
-        confetti({
+        mk({
           particleCount: 80,
           angle: 120,
           spread: 60,
           origin: { x: 1, y: 0.6 },
           colors: ["#14b8a6", "#ec4899", "#facc15"],
-          disableForReducedMotion: true,
         }),
       1000
     );
@@ -75,21 +73,18 @@ export default function ResultScreen({
   const requestInterview = async () => {
     setSavingInterview(true);
     try {
-      const res = await fetch("/api/students", {
+      const res = await fetch("/api/attempts", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: studentId, wantsInterview: true }),
+        body: JSON.stringify({ attemptId: result.attemptId }),
       });
       if (!res.ok) throw new Error();
       setWantsInterview(true);
-      toast({
-        title: "تم تسجيل رغبتك بنجاح! 🎥",
-        description: "تواصل معنا الآن لتأكيد موعد المقابلة",
-      });
+      toast({ title: t("savedOk"), description: t("step2") });
     } catch {
       toast({
-        title: "تعذّر الحفظ 😅",
-        description: "لا تقلق! يمكنك طلب المقابلة مباشرة من الويبينار",
+        title: t("saveFailed"),
+        description: t("step1"),
         variant: "destructive",
       });
     } finally {
@@ -115,23 +110,21 @@ export default function ResultScreen({
               src="/images/mascot-celebrate.png"
               alt="احتفال بالإنجاز"
               fill
-              sizes="160px"
               priority
+              sizes="160px"
               className="object-contain"
             />
           </motion.div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-purple-900 mt-2">
-            مبروك {studentName}! 🎉
+            {t("congrats")} {studentName}! 🎉
           </h1>
-          <p className="text-purple-600 font-semibold mt-1">
-            أكملت الاختبار، وهذه نتيجتك الرسمية
-          </p>
+          <p className="text-purple-600 font-semibold mt-1">{t("finished")}</p>
         </div>
 
         {/* ===== Level card ===== */}
         <div
-          className="card-fun p-6 sm:p-8 text-center border-4"
-          style={{ borderColor: level.color, background: level.bg + "66" }}
+          className="card-fun p-6 sm:p-8 text-center"
+          style={{ borderColor: level.color, background: level.color + "14" }}
         >
           <motion.div
             initial={{ scale: 0, rotate: -30 }}
@@ -143,17 +136,14 @@ export default function ResultScreen({
           </motion.div>
 
           <div
-            className="inline-flex items-center gap-2 text-white font-extrabold text-3xl rounded-full px-8 py-2 shadow-lg"
+            className="inline-flex items-center gap-2 text-white font-extrabold text-2xl rounded-full px-8 py-2 shadow-lg"
             style={{ background: level.color }}
           >
-            مستواك: {level.code}
+            {isDiagnostic ? "🧭 " + t("yourLevel") : t("yourLevel") + ": " + level.code}
           </div>
 
-          <h2 className="text-2xl font-extrabold text-purple-900 mt-3">
-            {level.nameAr}{" "}
-            <span dir="ltr" className="text-purple-500 text-xl">
-              ({level.nameEn})
-            </span>
+          <h2 className="text-2xl font-extrabold text-purple-900 mt-3 leading-snug">
+            {level.name}
           </h2>
 
           {/* Stars */}
@@ -164,58 +154,59 @@ export default function ResultScreen({
                 initial={{ scale: 0, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 transition={{ delay: 0.6 + i * 0.15, type: "spring" }}
-                className={`text-4xl ${
-                  i < stars ? "" : "opacity-25 grayscale"
-                }`}
+                className={`text-4xl ${i < result.stars ? "" : "opacity-25 grayscale"}`}
               >
                 ⭐
               </motion.span>
             ))}
           </div>
 
-          {/* Score */}
           <div className="flex items-center justify-center gap-3 flex-wrap">
-            <div className="bg-white/90 rounded-2xl px-6 py-3 border-2 border-purple-100 shadow-sm">
-              <span className="text-3xl font-extrabold text-purple-800">
-                {result.score}
-              </span>
-              <span className="text-purple-400 font-bold"> / {result.total}</span>
-              <span className="block text-sm text-purple-500 font-semibold">
-                النقاط
-              </span>
-            </div>
+            {!isDiagnostic && (
+              <div className="bg-white/90 rounded-2xl px-6 py-3 border-2 border-purple-100 shadow-sm">
+                <span className="text-3xl font-extrabold text-purple-800">
+                  {result.score}
+                </span>
+                <span className="text-purple-400 font-bold"> / {result.total}</span>
+                <span className="block text-sm text-purple-500 font-semibold">
+                  {t("points")}
+                </span>
+              </div>
+            )}
             <div className="bg-white/90 rounded-2xl px-6 py-3 border-2 border-purple-100 shadow-sm">
               <span className="text-3xl font-extrabold text-orange-500">
                 {result.percentage}%
               </span>
               <span className="block text-sm text-purple-500 font-semibold">
-                نسبة الإتقان
+                {t("mastery")}
               </span>
             </div>
           </div>
 
-          <p className="text-purple-800 leading-relaxed mt-5 text-base sm:text-lg font-medium">
-            {level.description}
-          </p>
+          {level.description && (
+            <p className="text-purple-800 leading-relaxed mt-5 text-base sm:text-lg font-medium">
+              {level.description}
+            </p>
+          )}
         </div>
 
-        {/* ===== Recommended course ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mt-5 bg-gradient-to-l from-purple-600 to-fuchsia-500 text-white rounded-3xl p-5 sm:p-6 shadow-xl"
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-4xl">🎓</span>
-            <div>
-              <p className="font-bold text-lg">المستوى المناسب لك في الأكاديمية:</p>
-              <p className="text-2xl font-extrabold">
-                دورة {level.nameAr} — {level.code}
-              </p>
+        {/* ===== Recommended program ===== */}
+        {level.program && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="mt-5 bg-gradient-to-l from-purple-600 to-fuchsia-500 text-white rounded-3xl p-5 sm:p-6 shadow-xl"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">🎓</span>
+              <div>
+                <p className="font-bold text-lg">{t("recommended")}</p>
+                <p className="text-xl font-extrabold leading-snug">{level.program}</p>
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* ===== Zoom interview ===== */}
         <motion.div
@@ -227,12 +218,9 @@ export default function ResultScreen({
           <div className="flex items-start gap-3">
             <span className="text-4xl">🎥</span>
             <div className="flex-1">
-              <h3 className="font-extrabold text-purple-900 text-xl">
-                هل تريد تحديد مستواك بدقة أكبر؟
-              </h3>
+              <h3 className="font-extrabold text-purple-900 text-xl">{t("wantZoom")}</h3>
               <p className="text-purple-600 font-medium mt-1 leading-relaxed">
-                يمكنك التقديم على مقابلة شخصية عبر <b>Zoom</b> مع {DR_NAME}{" "}
-                لتقييم محاورتك وتحديد مستواك بشكل أدق.
+                {t("zoomDesc")}
               </p>
 
               {!wantsInterview ? (
@@ -242,21 +230,19 @@ export default function ResultScreen({
                   className="btn-fun mt-4 bg-gradient-to-l from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-lg px-8 py-5 h-auto"
                   style={{ ["--btn-fun-shadow" as string]: "#0f766e" }}
                 >
-                  {savingInterview ? "جاري التسجيل..." : "✅ نعم، أريد حجز مقابلة Zoom"}
+                  {savingInterview ? t("booking") : t("bookZoom")}
                 </Button>
               ) : (
                 <div className="mt-4 space-y-3">
                   <div className="bg-teal-50 border-2 border-teal-300 text-teal-800 rounded-2xl px-4 py-3 font-bold">
-                    🎊 تم تسجيل رغبتك في المقابلة! الخطوة التالية:
+                    {t("zoomBooked")}
                   </div>
                   <ul className="space-y-2 text-purple-800 font-semibold">
                     <li className="flex items-start gap-2">
-                      <span>1️⃣</span>
-                      اطلب ذلك من {DR_NAME} مباشرة في الويبينار الآن.
+                      <span>1️⃣</span> {t("step1")}
                     </li>
                     <li className="flex items-start gap-2">
-                      <span>2️⃣</span>
-                      أو تواصل مع الفريق الأكاديمي:
+                      <span>2️⃣</span> {t("step2")}
                     </li>
                   </ul>
                   <div className="flex flex-wrap gap-3">
@@ -274,7 +260,7 @@ export default function ResultScreen({
                       className="btn-fun inline-flex items-center gap-2 bg-gradient-to-l from-green-500 to-emerald-400 text-white text-lg px-6 py-3.5"
                       style={{ ["--btn-fun-shadow" as string]: "#15803d" }}
                     >
-                      💬 واتساب الفريق الأكاديمي
+                      💬 {t("whatsapp")}
                     </a>
                   </div>
                 </div>
@@ -283,18 +269,25 @@ export default function ResultScreen({
           </div>
         </motion.div>
 
-        <div className="flex justify-center mt-6">
+        <div className="flex flex-wrap justify-center gap-3 mt-6">
           <Button
             onClick={onRetake}
             variant="ghost"
             className="text-purple-500 font-bold hover:text-purple-700 hover:bg-purple-50 text-lg rounded-full"
           >
-            🔄 إعادة الاختبار
+            {t("retake")}
+          </Button>
+          <Button
+            onClick={onBack}
+            variant="ghost"
+            className="text-purple-500 font-bold hover:text-purple-700 hover:bg-purple-50 text-lg rounded-full"
+          >
+            {t("backToTests")}
           </Button>
         </div>
 
         <p className="text-center text-xs text-purple-400 font-semibold mt-2 pb-6">
-          💜 نتيجتك محفوظة لدينا، وسيتواصل معك الفريق الأكاديمي قريباً
+          {t("resultSavedNote")}
         </p>
       </motion.div>
     </div>
