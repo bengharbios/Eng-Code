@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS "Attempt" (
     }
 
     try { await db.$executeRawUnsafe(`ALTER TABLE "Student" ADD COLUMN "passwordHash" TEXT;`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Attempt" ADD COLUMN "answersJson" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
 
     return NextResponse.json({ success: true, message: "Tables created successfully!" });
   } catch (err: any) {
