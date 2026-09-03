@@ -15,15 +15,14 @@ export let lastInitError: any = null;
 
 if (tUrl && tUrl !== "undefined" && tAuth && tAuth !== "undefined") {
   try {
-    const libsql = createClient({
+    // Vercel's cached adapter version exports PrismaLibSQL (capitalized)
+    // BUT it takes a Config object instead of a Client instance.
+    const adapter = new PrismaLibSQL({
       url: tUrl.replace(/"/g, '').trim(),
       authToken: tAuth.replace(/"/g, '').trim(),
-    })
-    const adapter = new PrismaLibSQL(libsql)
+    } as any)
     
     // Prisma Engine reads DATABASE_URL from process.env because of schema.prisma.
-    // If it's missing, it throws URL_INVALID. We cannot use datasourceUrl alongside adapter.
-    // So we inject it into process.env before instantiating the client.
     process.env.DATABASE_URL = tUrl.replace(/"/g, '').trim();
     
     prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter, log: ['query'] })
