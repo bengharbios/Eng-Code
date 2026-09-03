@@ -184,7 +184,7 @@ export default function TakeTestIntro({
             )}
 
             <div className="flex justify-center mt-8 gap-4 flex-col sm:flex-row items-center">
-              {user && user.role === "student" ? (
+              {user ? (
                 <Button
                   onClick={submitAlreadyLoggedIn}
                   className="btn-fun bg-gradient-to-l from-orange-500 to-amber-400 text-white text-2xl px-14 py-7 h-auto"
