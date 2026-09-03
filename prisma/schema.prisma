@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id             String   @id @default(cuid())
+  name           String
+  phone          String
+  age            Int
+  country        String
+  score          Int      @default(0)
+  total          Int      @default(0)
+  percentage     Float    @default(0)
+  level          String   @default("")
+  levelName      String   @default("")
+  wantsInterview Boolean  @default(false)
+  answersJson    String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
