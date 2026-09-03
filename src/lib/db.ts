@@ -8,10 +8,13 @@ const globalForPrisma = globalThis as unknown as {
 
 let prisma: PrismaClient;
 
-if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+const tUrl = process.env.TURSO_DATABASE_URL;
+const tAuth = process.env.TURSO_AUTH_TOKEN;
+
+if (tUrl && tUrl !== "undefined" && tAuth && tAuth !== "undefined") {
   const libsql = createClient({
-    url: process.env.TURSO_DATABASE_URL,
-    authToken: process.env.TURSO_AUTH_TOKEN,
+    url: tUrl,
+    authToken: tAuth,
   })
   const adapter = new PrismaLibSQL(libsql)
   prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter, log: ['query'] })
