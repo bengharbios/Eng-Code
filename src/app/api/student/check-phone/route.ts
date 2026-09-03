@@ -9,9 +9,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "missing_phone" }, { status: 400 });
     }
 
-    const student = await db.student.findUnique({
-      where: { phone: phone.trim() },
-    });
+    // Use raw query to avoid Prisma failing on missing columns
+    const rows = await db.$queryRawUnsafe<Array<{id: string; name: string; passwordHash: string | null}>>(
+      `SELECT id, name, passwordHash FROM "Student" WHERE phone = ? LIMIT 1`,
+      phone.trim()
+    );
+
+    const student = rows[0];
 
     if (!student) {
       return NextResponse.json({ status: "not_found" });
@@ -24,6 +28,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: "exists_no_password", name: student.name });
   } catch (err) {
     console.error("POST /api/student/check-phone:", err);
-    return NextResponse.json({ error: "server" }, { status: 500 });
+    return NextResponse.json({ error: "server", detail: String(err) }, { status: 500 });
   }
 }
