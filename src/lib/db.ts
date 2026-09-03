@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { createClient } from '@libsql/client'
-import { PrismaLibSQL } from '@prisma/adapter-libsql'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -17,7 +17,7 @@ if (tUrl && tUrl !== "undefined" && tAuth && tAuth !== "undefined") {
       url: tUrl.replace(/"/g, '').trim(),
       authToken: tAuth.replace(/"/g, '').trim(),
     })
-    const adapter = new PrismaLibSQL(libsql)
+    const adapter = new PrismaLibSql(libsql)
     prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter, log: ['query'] })
   } catch (e) {
     console.error("Libsql init error:", e);
