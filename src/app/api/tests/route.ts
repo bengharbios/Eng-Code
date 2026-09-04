@@ -33,6 +33,8 @@ export async function GET(req: NextRequest) {
           levelTag: t.levelTag,
           timeLimitMin: t.timeLimitMin,
           isSystem: t.isSystem,
+          logoUrl: t.logoUrl || "",
+          institutionName: t.institutionName || "",
           ownerName: t.owner?.name || "المعهد",
           questionCount: t._count.questions,
         }))
@@ -63,6 +65,8 @@ export async function GET(req: NextRequest) {
         language: t.language,
         isSystem: t.isSystem,
         isPublished: t.isPublished,
+        logoUrl: t.logoUrl || "",
+        institutionName: t.institutionName || "",
         ownerName: t.owner.name,
         questionCount: t._count.questions,
         attemptsCount: t._count.attempts,
@@ -94,6 +98,8 @@ export async function POST(req: NextRequest) {
       timeLimitMin = 0,
       allowRetake = true,
       accreditation = "",
+      logoUrl = "",
+      institutionName = "",
       outcomes = null,
       questions = [],
     } = body ?? {};
@@ -127,6 +133,8 @@ export async function POST(req: NextRequest) {
         timeLimitMin: Math.max(0, Math.min(180, Number(timeLimitMin) || 0)),
         allowRetake: Boolean(allowRetake),
         accreditation: String(accreditation).slice(0, 3000),
+        logoUrl: String(logoUrl).slice(0, 500000),
+        institutionName: String(institutionName).slice(0, 300),
         outcomesJson: outcomes ? JSON.stringify(outcomes) : "",
         ownerId: (body.ownerId && session.role === "super") ? String(body.ownerId) : session.uid,
         questions: {

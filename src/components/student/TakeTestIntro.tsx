@@ -203,6 +203,11 @@ export default function TakeTestIntro({
                 <span className="bg-teal-100 text-teal-700 rounded-full px-3 py-1">
                   👩‍🏫 {test.ownerName}
                 </span>
+                {test.institutionName && (
+                  <span className="bg-cyan-100 text-cyan-900 border border-cyan-200 rounded-full px-3 py-1 font-extrabold flex items-center gap-1">
+                    🏛️ {test.institutionName}
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => {

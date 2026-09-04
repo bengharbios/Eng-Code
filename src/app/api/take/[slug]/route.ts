@@ -33,6 +33,7 @@ export async function GET(
       allowRetake: test.allowRetake,
       accreditation: test.accreditation,
       logoUrl: test.logoUrl || "",
+      institutionName: test.institutionName || "",
       ownerName: test.owner.name,
       questions: test.questions.map((q) => ({
         id: q.id,

@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS "Attempt" (
     try { await db.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN "permissionsJson" TEXT NOT NULL DEFAULT '{}';`); } catch(e) {}
     try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "allowRetake" BOOLEAN NOT NULL DEFAULT 1;`); } catch(e) {}
     try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "logoUrl" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "institutionName" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
     try {
       await db.$executeRawUnsafe(`
         CREATE TABLE IF NOT EXISTS "SiteSettings" (

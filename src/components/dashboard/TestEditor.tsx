@@ -90,6 +90,7 @@ export default function TestEditor({
   const [allowRetake, setAllowRetake] = useState(true);
   const [accreditation, setAccreditation] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [institutionName, setInstitutionName] = useState("");
   const [questions, setQuestions] = useState<QItem[]>([emptyQuestion("points")]);
   const [outcomes, setOutcomes] = useState<OutcomesDoc>({
     buckets: [],
@@ -132,6 +133,7 @@ export default function TestEditor({
         setAllowRetake(d.allowRetake ?? true);
         setAccreditation(d.accreditation || "");
         setLogoUrl(d.logoUrl || "");
+        setInstitutionName(d.institutionName || "");
         setQuestions(
           (d.questions || []).map(
             (q: {
@@ -247,6 +249,7 @@ export default function TestEditor({
         allowRetake,
         accreditation,
         logoUrl,
+        institutionName,
         ownerId: selectedOwnerId || undefined,
         outcomes: kind === "diagnostic" ? outcomes : null,
         questions: questions.map((q) => ({
@@ -467,8 +470,17 @@ export default function TestEditor({
                   </button>
                 )}
                 <p className="text-xs text-teal-700/80 font-medium mt-1">
-                  يظهر هذا الشعار للطلاب في مقدمة وكرت الاعتماد الخاص بهذا الاختبار دون أي تغيير على شعار المعهد في الهيدر الرئيسي.
+                  يظهر هذا الشعار للطلاب في بطاقات الصفحة الرئيسية ومقدمة وكرت الاعتماد الخاص بهذا الاختبار دون أي تغيير على شعار المعهد في الهيدر الرئيسي.
                 </p>
+                <div className="pt-2">
+                  <Label className="font-bold text-teal-900 text-xs block mb-1">🏛️ اسم المؤسسة / المركز (يظهر بجوار الشعار واسم المحاضر)</Label>
+                  <Input
+                    value={institutionName}
+                    onChange={(e) => setInstitutionName(e.target.value)}
+                    placeholder="مثال: مؤسسة قيادة التعلم المرح (LFL)"
+                    className="h-10 rounded-xl border border-teal-300 bg-white font-medium text-sm text-teal-950"
+                  />
+                </div>
               </div>
             </div>
           </div>

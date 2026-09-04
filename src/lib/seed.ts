@@ -138,6 +138,8 @@ export async function ensureSeed() {
       data: {
         description: "اختبار تشخيصي من 5 أسئلة وفق الدليل التشخيصي المعتمد، يقيس حاجزك النفسي ونمط معالجتك اللغوية ليقترح لك المستوى والمسار الأمثل للبدء به.",
         accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
+        logoUrl: "/images/lfl-logo.png",
+        institutionName: "مؤسسة قيادة التعلم المرح (LFL)",
         outcomesJson: JSON.stringify(DIAGNOSTIC_OUTCOMES),
       },
     });

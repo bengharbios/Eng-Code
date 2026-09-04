@@ -24,6 +24,7 @@ export interface PublicTest {
   allowRetake: boolean;
   accreditation: string;
   logoUrl?: string;
+  institutionName?: string;
   ownerName: string;
   questions: PublicQuestion[];
 }

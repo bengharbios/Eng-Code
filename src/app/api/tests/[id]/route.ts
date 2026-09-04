@@ -51,6 +51,7 @@ export async function GET(
       allowRetake: test.allowRetake,
       accreditation: test.accreditation,
       logoUrl: test.logoUrl || "",
+      institutionName: test.institutionName || "",
       outcomes: test.outcomesJson ? JSON.parse(test.outcomesJson) : null,
       ownerId: test.ownerId,
       ownerName: test.owner.name,
@@ -107,6 +108,8 @@ export async function PATCH(
     if (body.accreditation !== undefined)
       data.accreditation = String(body.accreditation).slice(0, 3000);
     if (body.logoUrl !== undefined) data.logoUrl = String(body.logoUrl).slice(0, 500000);
+    if (body.institutionName !== undefined)
+      data.institutionName = String(body.institutionName).slice(0, 300);
     if (body.outcomes !== undefined)
       data.outcomesJson = body.outcomes ? JSON.stringify(body.outcomes) : "";
     if (body.isPublished !== undefined) data.isPublished = Boolean(body.isPublished);

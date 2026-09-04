@@ -228,10 +228,15 @@ export default function HomeScreen({
               >
                 <div className="flex items-start gap-3">
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
-                    style={{ background: test.color + "22", border: `2px solid ${test.color}44` }}
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0 bg-white p-1.5 shadow-sm overflow-hidden"
+                    style={{ border: `2px solid ${test.color}44` }}
                   >
-                    {test.emoji}
+                    {(test as any).logoUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={(test as any).logoUrl} alt="Logo" className="w-full h-full object-contain rounded-xl" />
+                    ) : (
+                      test.emoji
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -251,6 +256,11 @@ export default function HomeScreen({
                       {(test as any).ownerName && (
                         <span className="bg-emerald-100 text-emerald-800 rounded-full px-2.5 py-0.5 font-bold">
                           👩‍🏫 {(test as any).ownerName}
+                        </span>
+                      )}
+                      {(test as any).institutionName && (
+                        <span className="bg-cyan-100 text-cyan-900 border border-cyan-200 rounded-full px-2.5 py-0.5 font-extrabold flex items-center gap-1">
+                          🏛️ {(test as any).institutionName}
                         </span>
                       )}
                       <span className="bg-purple-100 text-purple-700 rounded-full px-2.5 py-0.5">

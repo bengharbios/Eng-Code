@@ -37,9 +37,10 @@ model Test {
   passPercent   Int      @default(50)
   timeLimitMin  Int      @default(0) // 0 = no limit
   allowRetake   Boolean  @default(true)
-  accreditation String   @default("") // scientific accreditation text shown in the intro
-  logoUrl       String   @default("")
-  outcomesJson  String   @default("") // diagnostic outcomes {buckets:[{key,emoji,title,description,program,color}],tie:{...}}
+  accreditation   String   @default("") // scientific accreditation text shown in the intro
+  logoUrl         String   @default("")
+  institutionName String   @default("")
+  outcomesJson    String   @default("") // diagnostic outcomes {buckets:[{key,emoji,title,description,program,color}],tie:{...}}
   ownerId       String
   owner         User     @relation(fields: [ownerId], references: [id])
   questions     Question[]
