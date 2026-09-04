@@ -10,18 +10,51 @@ const baloo = Baloo_Bhaijaan_2({
 });
 
 export const metadata: Metadata = {
-  title: "مغامرة المستوى | اختبار اللغة الإنجليزية التفاعلي",
+  title: "معهد السلام الثقافي | اختبار تحديد المستوى والتقييم التشخيصي",
   description:
-    "اختبار تفاعلي ممتع لتحديد مستواك في اللغة الإنجليزية مع نجوم وشارات وصور مرحة، ونتيجة فورية بمستويات CEFR",
+    "حدد مستواك بدقة وحصل على تقييم فوري ومعتمد وفق الإطار الأوروبي (CEFR) من معهد السلام الثقافي مع استشارة د. دعاء والفريق الأكاديمي.",
   keywords: [
-    "اختبار مستوى",
+    "معهد السلام الثقافي",
+    "اختبار تحديد المستوى",
     "اللغة الإنجليزية",
     "CEFR",
     "تعلم الإنجليزية",
     "English placement test",
   ],
   icons: {
-    icon: "/images/mascot-welcome.png",
+    icon: "/images/institute-logo.webp",
+    shortcut: "/images/institute-logo.webp",
+    apple: "/images/institute-logo.webp",
+  },
+  openGraph: {
+    title: "معهد السلام الثقافي | اختبار تحديد المستوى والتقييم التشخيصي",
+    description:
+      "حدد مستواك بدقة وحصل على تقييم فوري ومعتمد وفق الإطار الأوروبي (CEFR) من معهد السلام الثقافي مع استشارة د. دعاء والفريق الأكاديمي.",
+    url: "https://eng-code-beige.vercel.app",
+    siteName: "معهد السلام الثقافي",
+    images: [
+      {
+        url: "https://eng-code-beige.vercel.app/images/og-share.png",
+        width: 1200,
+        height: 630,
+        alt: "معهد السلام الثقافي - اختبار تحديد المستوى",
+      },
+      {
+        url: "https://eng-code-beige.vercel.app/images/institute-logo.webp",
+        width: 500,
+        height: 500,
+        alt: "شعار معهد السلام الثقافي",
+      },
+    ],
+    locale: "ar_SA",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "معهد السلام الثقافي | اختبار تحديد المستوى والتقييم التشخيصي",
+    description:
+      "حدد مستواك بدقة وحصل على تقييم فوري ومعتمد وفق الإطار الأوروبي (CEFR) من معهد السلام الثقافي.",
+    images: ["https://eng-code-beige.vercel.app/images/og-share.png"],
   },
 };
 
