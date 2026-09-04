@@ -239,6 +239,8 @@ export default function SuperDashboard({ userName }: { userName: string }) {
     } else {
       toast({ title: "حدث خطأ", variant: "destructive" });
     }
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
