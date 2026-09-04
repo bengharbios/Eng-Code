@@ -13,6 +13,8 @@ import SuperDashboard from "@/components/dashboard/SuperDashboard";
 import { I18nProvider } from "@/lib/i18n";
 import { SessionProvider, useSession } from "@/components/SessionProvider";
 
+import BottomNav from "@/components/BottomNav";
+
 type View = "home" | "take" | "student" | "login" | "instructor" | "super";
 
 function AppShell() {
@@ -96,7 +98,7 @@ function AppShell() {
   };
 
   return (
-    <main className="relative min-h-screen flex flex-col">
+    <main className="relative min-h-screen flex flex-col pb-20 sm:pb-0">
       <FunBackground />
       <Header
         onHome={goHome}
@@ -121,7 +123,7 @@ function AppShell() {
         </AnimatePresence>
       </div>
 
-      <footer className="mt-auto bg-purple-900 text-purple-200 py-4 px-4">
+      <footer className="mt-auto bg-purple-900 text-purple-200 py-4 px-4 mb-16 sm:mb-0">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm font-semibold">
           <span>
             🎓 {siteSettings.siteName || "مغامرة المستوى"} — منصة الاختبارات التعليمية التفاعلية × {siteSettings.instituteName || "معهد السلام الثقافي"}
@@ -135,6 +137,22 @@ function AppShell() {
           </span>
         </div>
       </footer>
+
+      <BottomNav
+        currentView={effectiveView}
+        onNavigate={(tab) => {
+          if (tab === "home") goHome();
+          else if (tab === "take") {
+            goHome();
+            // Smooth scroll down to test gallery on mobile
+            setTimeout(() => {
+              window.scrollTo({ top: 380, behavior: "smooth" });
+            }, 100);
+          } else if (tab === "student") setView("student");
+          else if (tab === "login") goDashboard();
+        }}
+        isTakingTest={effectiveView === "take"}
+      />
     </main>
   );
 }
