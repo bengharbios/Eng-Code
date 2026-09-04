@@ -98,37 +98,55 @@ let seeded = false;
 export async function ensureSeed() {
   if (seeded) return;
   try {
-    const count = await db.user.count();
-    if (count > 0) {
+    // 1. Ensure staff users exist
+    let duaa = await db.user.findFirst({
+      where: { OR: [{ username: "duaa" }, { username: "962788696958" }] },
+    });
+    if (!duaa) {
+      duaa = await db.user.create({
+        data: {
+          username: "duaa",
+          name: "الدكتورة دعاء",
+          role: "instructor",
+          passwordHash: hashPassword("duaa2026"),
+        },
+      });
+    }
+
+    let superUser = await db.user.findFirst({
+      where: { OR: [{ username: "super" }, { username: "971564642654" }] },
+    });
+    if (!superUser) {
+      superUser = await db.user.create({
+        data: {
+          username: "super",
+          name: "مدير النظام (سوبر أدمن)",
+          role: "super",
+          passwordHash: hashPassword("super2026"),
+        },
+      });
+    }
+
+    let ridha = await db.user.findFirst({
+      where: { username: "ridha" },
+    });
+    if (!ridha) {
+      await db.user.create({
+        data: {
+          username: "ridha",
+          name: "أ. رضاء البيساني",
+          role: "instructor",
+          passwordHash: hashPassword("ridha2026"),
+        },
+      });
+    }
+
+    // 2. Ensure system tests exist
+    const testCount = await db.test.count();
+    if (testCount > 0) {
       seeded = true;
       return;
     }
-
-    // ===== Users =====
-    const superUser = await db.user.create({
-      data: {
-        username: "super",
-        name: "مدير النظام (سوبر أدمن)",
-        role: "super",
-        passwordHash: hashPassword("super2026"),
-      },
-    });
-    const duaa = await db.user.create({
-      data: {
-        username: "duaa",
-        name: "الدكتورة دعاء",
-        role: "instructor",
-        passwordHash: hashPassword("duaa2026"),
-      },
-    });
-    await db.user.create({
-      data: {
-        username: "ridha",
-        name: "أ. رضاء البيساني",
-        role: "instructor",
-        passwordHash: hashPassword("ridha2026"),
-      },
-    });
 
     // ===== System test 1: CEFR Placement (locked) =====
     const placement = await db.test.create({

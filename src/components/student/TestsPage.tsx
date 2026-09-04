@@ -23,7 +23,7 @@ export default function TestsPage({
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/tests", { cache: "no-store" })
+    fetch("/api/tests?public=1", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => {
         if (alive) setTests(Array.isArray(data) ? data : []);
