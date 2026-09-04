@@ -167,13 +167,24 @@ export default function TakeTestIntro({
           >
             {/* Test hero */}
             <div className="text-center">
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 2.4, repeat: Infinity }}
-                className="text-7xl mb-2"
-              >
-                {test.emoji}
-              </motion.div>
+              {test.logoUrl ? (
+                <div className="flex justify-center mb-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={test.logoUrl}
+                    alt={test.ownerName || "Logo"}
+                    className="h-20 max-w-[240px] object-contain rounded-2xl bg-white p-2 border-2 border-purple-100 shadow-md"
+                  />
+                </div>
+              ) : (
+                <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 2.4, repeat: Infinity }}
+                  className="text-7xl mb-2"
+                >
+                  {test.emoji}
+                </motion.div>
+              )}
               <h1 className="text-3xl sm:text-4xl font-extrabold text-purple-900">
                 {test.title}
               </h1>

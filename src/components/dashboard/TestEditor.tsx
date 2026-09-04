@@ -89,6 +89,7 @@ export default function TestEditor({
   const [timeLimitMin, setTimeLimitMin] = useState(0);
   const [allowRetake, setAllowRetake] = useState(true);
   const [accreditation, setAccreditation] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
   const [questions, setQuestions] = useState<QItem[]>([emptyQuestion("points")]);
   const [outcomes, setOutcomes] = useState<OutcomesDoc>({
     buckets: [],
@@ -129,7 +130,8 @@ export default function TestEditor({
         setPassPercent(d.passPercent);
         setTimeLimitMin(d.timeLimitMin);
         setAllowRetake(d.allowRetake ?? true);
-        setAccreditation(d.accreditation);
+        setAccreditation(d.accreditation || "");
+        setLogoUrl(d.logoUrl || "");
         setQuestions(
           (d.questions || []).map(
             (q: {
@@ -244,6 +246,7 @@ export default function TestEditor({
         timeLimitMin,
         allowRetake,
         accreditation,
+        logoUrl,
         ownerId: selectedOwnerId || undefined,
         outcomes: kind === "diagnostic" ? outcomes : null,
         questions: questions.map((q) => ({
@@ -417,6 +420,57 @@ export default function TestEditor({
           <div className="space-y-2 sm:col-span-2">
             <Label className="font-bold text-purple-900">{t("accreditationLabel")}</Label>
             <Textarea value={accreditation} onChange={(e) => setAccreditation(e.target.value)} rows={3} className="rounded-2xl border-2 border-cyan-200 bg-cyan-50/50" />
+          </div>
+          <div className="space-y-2 sm:col-span-2 card-fun p-4 bg-teal-50/60 !border-teal-200">
+            <Label className="font-bold text-teal-900 flex items-center gap-2">
+              🖼️ شعار المؤسسة / المحاضر (شعار خاص يظهر للطالب عند دخول هذا الاختبار)
+            </Label>
+            <div className="flex items-center gap-4">
+              {logoUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={logoUrl} alt="شعار المحاضر" className="w-16 h-16 object-contain rounded-xl border bg-white p-1 shadow-sm" />
+              ) : (
+                <div className="w-16 h-16 rounded-xl border-2 border-dashed border-teal-300 bg-white flex items-center justify-center text-teal-400 text-2xl">
+                  🖼️
+                </div>
+              )}
+              <div className="flex-1 space-y-1">
+                <label className="btn-fun bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer inline-block">
+                  📤 رفع / تغيير الشعار
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 2 * 1024 * 1024) {
+                        toast({ title: "حجم الصورة كبير جداً (الأقصى 2 ميجابايت)", variant: "destructive" });
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = (evt) => {
+                        const base64 = evt.target?.result as string;
+                        if (base64) setLogoUrl(base64);
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+                {logoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setLogoUrl("")}
+                    className="text-xs text-rose-600 underline block font-bold mr-2"
+                  >
+                    حذف الشعار
+                  </button>
+                )}
+                <p className="text-xs text-teal-700/80 font-medium mt-1">
+                  يظهر هذا الشعار للطلاب في مقدمة وكرت الاعتماد الخاص بهذا الاختبار دون أي تغيير على شعار المعهد في الهيدر الرئيسي.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

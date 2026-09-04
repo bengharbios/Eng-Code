@@ -256,21 +256,16 @@ export default function InstructorDashboard({ userName }: { userName: string }) 
                   👁️ {t("openTest")}
                 </button>
                 <button
-                  onClick={() =>
-                    test.isSystem && test.kind === "points"
-                      ? toast({ title: t("systemLockedNote"), variant: "destructive" })
-                      : openResults(test.id)
-                  }
+                  onClick={() => openResults(test.id)}
                   className="rounded-xl bg-teal-100 hover:bg-teal-200 text-teal-800 font-bold text-xs py-2.5"
                 >
                   📊 {t("results")}
                 </button>
                 <button
-                  onClick={() =>
-                    test.isSystem
-                      ? toast({ title: t("systemLockedNote"), variant: "destructive" })
-                      : (setEditingId(test.id), setTab("editor"))
-                  }
+                  onClick={() => {
+                    setEditingId(test.id);
+                    setTab("editor");
+                  }}
                   className="rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-800 font-bold text-xs py-2.5"
                 >
                   ✏️ {t("edit")}

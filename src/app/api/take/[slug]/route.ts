@@ -32,6 +32,7 @@ export async function GET(
       timeLimitMin: test.timeLimitMin,
       allowRetake: test.allowRetake,
       accreditation: test.accreditation,
+      logoUrl: test.logoUrl || "",
       ownerName: test.owner.name,
       questions: test.questions.map((q) => ({
         id: q.id,

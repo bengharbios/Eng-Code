@@ -23,6 +23,7 @@ export interface PublicTest {
   timeLimitMin: number;
   allowRetake: boolean;
   accreditation: string;
+  logoUrl?: string;
   ownerName: string;
   questions: PublicQuestion[];
 }

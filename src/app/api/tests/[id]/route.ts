@@ -50,6 +50,7 @@ export async function GET(
       timeLimitMin: test.timeLimitMin,
       allowRetake: test.allowRetake,
       accreditation: test.accreditation,
+      logoUrl: test.logoUrl || "",
       outcomes: test.outcomesJson ? JSON.parse(test.outcomesJson) : null,
       ownerId: test.ownerId,
       ownerName: test.owner.name,
@@ -84,10 +85,6 @@ export async function PATCH(
       return NextResponse.json({ error: res.error }, { status });
     }
     const { session, test } = res;
-    // System tests: only super admin can edit (locked)
-    if (test.isSystem && session!.role !== "super") {
-      return NextResponse.json({ error: "locked" }, { status: 403 });
-    }
 
     const body = await req.json();
     const data: Record<string, unknown> = {};
@@ -109,6 +106,7 @@ export async function PATCH(
     if (body.allowRetake !== undefined) data.allowRetake = Boolean(body.allowRetake);
     if (body.accreditation !== undefined)
       data.accreditation = String(body.accreditation).slice(0, 3000);
+    if (body.logoUrl !== undefined) data.logoUrl = String(body.logoUrl).slice(0, 500000);
     if (body.outcomes !== undefined)
       data.outcomesJson = body.outcomes ? JSON.stringify(body.outcomes) : "";
     if (body.isPublished !== undefined) data.isPublished = Boolean(body.isPublished);
