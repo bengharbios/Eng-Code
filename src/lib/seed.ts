@@ -110,7 +110,7 @@ export async function ensureSeed() {
         username: "super",
         name: "مدير النظام (سوبر أدمن)",
         role: "super",
-        passwordHash: hashPassword("webinar2026"),
+        passwordHash: hashPassword("super2026"),
       },
     });
     const duaa = await db.user.create({
