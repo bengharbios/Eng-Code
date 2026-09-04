@@ -104,6 +104,7 @@ function AppShell() {
         onStudent={() => setView("student")}
         onDashboard={goDashboard}
         siteSettings={siteSettings}
+        settingsLoaded={settingsLoaded}
       />
 
       <div className="flex-1">
@@ -123,7 +124,7 @@ function AppShell() {
       <footer className="mt-auto bg-purple-900 text-purple-200 py-4 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm font-semibold">
           <span>
-            🦉 {siteSettings.siteName || "مغامرة المستوى"} — منصة الاختبارات التعليمية التفاعلية × {siteSettings.instituteName || "معهد السلام الثقافي"}
+            🎓 {siteSettings.siteName || "مغامرة المستوى"} — منصة الاختبارات التعليمية التفاعلية × {siteSettings.instituteName || "معهد السلام الثقافي"}
           </span>
           <span>
             {siteSettings.footerText || (

@@ -804,7 +804,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img src={siteSettings.logoUrl} alt="الشعار الحالي" className="w-12 h-12 object-contain rounded-lg border bg-white p-1" />
                       ) : (
-                        <div className="w-12 h-12 rounded-lg border bg-white flex items-center justify-center text-xl">🦉</div>
+                        <div className="w-12 h-12 rounded-lg border bg-white flex items-center justify-center text-xl">🎓</div>
                       )}
                       <div className="flex-1 space-y-1">
                         <label className="btn-fun bg-purple-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer inline-block">
@@ -822,7 +822,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
 
                   {/* Mascot Upload */}
                   <div className="space-y-2 card-fun p-4 bg-purple-50/50 !border-purple-100">
-                    <Label className="font-bold text-purple-900 text-sm block">🦉 صورة البومة المعلمة / التميمة (Hero Mascot)</Label>
+                    <Label className="font-bold text-purple-900 text-sm block">🎨 صورة التميمة الرسمية للمنصة (Hero Mascot)</Label>
                     <div className="flex items-center gap-3">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={siteSettings.mascotUrl || "/images/mascot-welcome.png"} alt="التميمة" className="w-12 h-12 object-contain rounded-lg border bg-white p-1" />

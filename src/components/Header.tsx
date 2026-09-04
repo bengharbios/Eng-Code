@@ -11,17 +11,19 @@ export default function Header({
   onStudent,
   onDashboard,
   siteSettings = {},
+  settingsLoaded = true,
 }: {
   onHome: () => void;
   onLogin: () => void;
   onStudent: () => void;
   onDashboard: () => void;
   siteSettings?: Record<string, string>;
+  settingsLoaded?: boolean;
 }) {
   const { lang, setLang, t } = useI18n();
   const { user, logout } = useSession();
 
-  const logoUrl = siteSettings.logoUrl || "/images/institute-logo.webp";
+  const logoUrl = siteSettings.logoUrl;
   const siteName = siteSettings.siteName || t("appName");
   const instituteName = siteSettings.instituteName || "معهد السلام الثقافي";
 
@@ -29,7 +31,9 @@ export default function Header({
     <header className="sticky top-0 z-30 bg-white/75 backdrop-blur-md border-b-2 border-purple-100">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
         <button onClick={onHome} className="flex items-center gap-2 group shrink-0">
-          {siteSettings.logoUrl ? (
+          {!settingsLoaded ? (
+            <div className="w-10 h-10 rounded-lg bg-purple-100 animate-pulse" />
+          ) : logoUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={logoUrl}
@@ -37,19 +41,32 @@ export default function Header({
               className="w-10 h-10 object-contain rounded-lg border border-purple-200 bg-white p-0.5 group-hover:scale-105 transition-transform"
             />
           ) : (
-            <span className="text-3xl group-hover:scale-110 transition-transform">🦉</span>
+            <span className="text-3xl group-hover:scale-110 transition-transform">🎓</span>
           )}
           <div className="text-right leading-tight hidden sm:block">
-            <div className="font-extrabold text-lg text-purple-900">{siteName}</div>
-            <div className="text-[10px] text-purple-400 font-bold flex items-center gap-1">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={logoUrl}
-                alt={instituteName}
-                className="w-3.5 h-3.5 rounded-sm object-contain"
-              />
-              {instituteName}
-            </div>
+            {!settingsLoaded ? (
+              <div className="space-y-1">
+                <div className="w-28 h-4 bg-purple-100 rounded animate-pulse" />
+                <div className="w-20 h-3 bg-purple-100 rounded animate-pulse" />
+              </div>
+            ) : (
+              <>
+                <div className="font-extrabold text-lg text-purple-900">{siteName}</div>
+                <div className="text-[10px] text-purple-400 font-bold flex items-center gap-1">
+                  {logoUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={logoUrl}
+                      alt={instituteName}
+                      className="w-3.5 h-3.5 rounded-sm object-contain"
+                    />
+                  ) : (
+                    <span>🎓</span>
+                  )}
+                  {instituteName}
+                </div>
+              </>
+            )}
           </div>
         </button>
 

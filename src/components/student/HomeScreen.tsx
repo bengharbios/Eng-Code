@@ -131,16 +131,18 @@ export default function HomeScreen({
           className="mt-6 w-full max-w-3xl card-fun p-4 sm:p-5 bg-gradient-to-l from-cyan-50 to-teal-50 !border-cyan-200"
         >
           <div className="flex items-start gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={
-                siteSettings.accreditationLogoUrl ||
-                siteSettings.logoUrl ||
-                "/images/institute-logo.webp"
-              }
-              alt="شعار المعهد"
-              className="w-13 h-13 rounded-xl object-contain border-2 border-cyan-100 bg-white p-1 shrink-0"
-            />
+            {siteSettings.accreditationLogoUrl || siteSettings.logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={siteSettings.accreditationLogoUrl || siteSettings.logoUrl}
+                alt="شعار المعهد"
+                className="w-13 h-13 rounded-xl object-contain border-2 border-cyan-100 bg-white p-1 shrink-0"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-xl border-2 border-cyan-100 bg-white flex items-center justify-center text-2xl shrink-0">
+                🛡️
+              </div>
+            )}
             <div>
               <h3 className="font-extrabold text-cyan-900 text-base sm:text-lg">
                 🛡️ {siteSettings.accreditationTitle || t("accreditationTitle")}
