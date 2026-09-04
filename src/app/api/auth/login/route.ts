@@ -4,6 +4,7 @@ import { ensureSeed } from "@/lib/seed";
 import {
   SESSION_COOKIE,
   createSessionToken,
+  hashPassword,
   verifyPassword,
 } from "@/lib/auth";
 
@@ -14,15 +15,53 @@ export async function POST(req: NextRequest) {
     if (!username || !password) {
       return NextResponse.json({ error: "bad" }, { status: 400 });
     }
-    const user = await db.user.findUnique({
-      where: { username: String(username).trim().toLowerCase() },
-    });
-    let isValid = verifyPassword(String(password), user.passwordHash);
+    const uname = String(username).trim().toLowerCase();
+    const pwd = String(password).trim();
 
-    // Fallback recovery for default accounts if password hash mismatched
+    let user = await db.user.findUnique({
+      where: { username: uname },
+    });
+
+    // If super/duaa/ridha default user does not exist in DB, auto-create it now!
+    if (!user) {
+      if (uname === "super" && (pwd === "super2026" || pwd === "webinar2026")) {
+        user = await db.user.create({
+          data: {
+            username: "super",
+            name: "مدير النظام (سوبر أدمن)",
+            role: "super",
+            passwordHash: hashPassword(pwd),
+          },
+        });
+      } else if (uname === "duaa" && pwd === "duaa2026") {
+        user = await db.user.create({
+          data: {
+            username: "duaa",
+            name: "الدكتورة دعاء",
+            role: "instructor",
+            passwordHash: hashPassword(pwd),
+          },
+        });
+      } else if (uname === "ridha" && pwd === "ridha2026") {
+        user = await db.user.create({
+          data: {
+            username: "ridha",
+            name: "أ. رضاء البيساني",
+            role: "instructor",
+            passwordHash: hashPassword(pwd),
+          },
+        });
+      }
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: "bad_credentials" }, { status: 401 });
+    }
+
+    let isValid = verifyPassword(pwd, user.passwordHash);
+
+    // Fallback recovery if user exists but hash mismatched
     if (!isValid) {
-      const pwd = String(password).trim();
-      const uname = user.username.toLowerCase();
       if (
         (uname === "super" && (pwd === "super2026" || pwd === "webinar2026")) ||
         (uname === "duaa" && pwd === "duaa2026") ||
