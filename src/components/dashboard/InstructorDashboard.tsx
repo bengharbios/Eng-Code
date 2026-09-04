@@ -65,7 +65,7 @@ export default function InstructorDashboard({ userName }: { userName: string }) 
   }, []);
 
   const copyLink = (slug: string) => {
-    const url = `${window.location.origin}/?t=${slug}`;
+    const url = `${window.location.origin}/test/${slug}`;
     navigator.clipboard
       .writeText(url)
       .then(() => toast({ title: t("copied"), description: url }))

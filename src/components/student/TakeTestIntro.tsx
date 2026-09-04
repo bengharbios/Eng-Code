@@ -192,6 +192,20 @@ export default function TakeTestIntro({
                 <span className="bg-teal-100 text-teal-700 rounded-full px-3 py-1">
                   👩‍🏫 {test.ownerName}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    const url = `${window.location.origin}/test/${test.slug}`;
+                    if (navigator.clipboard) {
+                      navigator.clipboard.writeText(url);
+                      alert("تم نسخ رابط هذا الاختبار بنجاح! يمكنك الآن مشاركته عبر الواتساب.");
+                    }
+                  }}
+                  className="bg-fuchsia-100 hover:bg-fuchsia-200 text-fuchsia-800 rounded-full px-3 py-1 transition flex items-center gap-1 cursor-pointer"
+                >
+                  🔗 مشاركة هذا الاختبار
+                </button>
               </div>
             </div>
 
