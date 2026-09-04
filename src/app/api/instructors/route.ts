@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSession, hashPassword } from "@/lib/auth";
 
+async function ensureColumns() {
+  try { await db.$executeRawUnsafe(`ALTER TABLE "User" ADD COLUMN "permissionsJson" TEXT NOT NULL DEFAULT '{}';`); } catch {}
+}
+
 // GET /api/instructors — super only
 export async function GET() {
   try {
@@ -9,19 +13,33 @@ export async function GET() {
     if (!session || session.role !== "super") {
       return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
-    const users = await db.user.findMany({
-      orderBy: { createdAt: "asc" },
-      include: { _count: { select: { tests: true } } },
-    });
+
+    await ensureColumns();
+
+    let users: any[] = [];
+    try {
+      users = await db.user.findMany({
+        orderBy: { createdAt: "asc" },
+        include: { _count: { select: { tests: true } } },
+      });
+    } catch (e) {
+      console.warn("findMany failed, fallback to raw query:", e);
+      users = await db.$queryRawUnsafe(
+        `SELECT u.id, u.username, u.name, u.role, u.isActive, u.createdAt, u.permissionsJson,
+                (SELECT COUNT(*) FROM "Test" t WHERE t.ownerId = u.id) as testsCount
+         FROM "User" u ORDER BY u.createdAt ASC`
+      );
+    }
+
     return NextResponse.json(
       users.map((u: any) => ({
         id: u.id,
         username: u.username,
         name: u.name,
         role: u.role,
-        isActive: u.isActive,
+        isActive: u.isActive !== false && u.isActive !== 0,
         permissionsJson: u.permissionsJson || "",
-        testsCount: u._count.tests,
+        testsCount: typeof u.testsCount === "number" ? Number(u.testsCount) : (u._count?.tests || 0),
         createdAt: u.createdAt,
       }))
     );

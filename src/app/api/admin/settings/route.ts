@@ -13,9 +13,22 @@ const DEFAULTS: Record<string, string> = {
   heroSubtitle: "",
 };
 
+async function ensureSiteSettingsTable() {
+  try {
+    await db.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SiteSettings" (
+        "key" TEXT NOT NULL PRIMARY KEY,
+        "value" TEXT NOT NULL DEFAULT '',
+        "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+  } catch {}
+}
+
 // GET /api/admin/settings — public read (homepage needs it)
 export async function GET() {
   try {
+    await ensureSiteSettingsTable();
     const rows = await db.$queryRawUnsafe<Array<{ key: string; value: string }>>(
       `SELECT key, value FROM "SiteSettings"`
     );
@@ -39,6 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    await ensureSiteSettingsTable();
 
     for (const [key, value] of Object.entries(body)) {
       if (typeof value !== "string") continue;
