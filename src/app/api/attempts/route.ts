@@ -12,13 +12,23 @@ import {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { slug, name, phone, age, country, answers } = body ?? {};
-    if (!slug || !name || !phone || !Array.isArray(answers)) {
-      return NextResponse.json({ error: "bad" }, { status: 400 });
+    const { slug, testSlug, testId, name, studentName, phone, studentPhone, age, country, answers } = body ?? {};
+    
+    const effectiveSlug = slug || testSlug;
+    const effectiveName = name || studentName;
+    const effectivePhone = phone || studentPhone;
+
+    if ((!effectiveSlug && !testId) || !effectiveName || !effectivePhone || !Array.isArray(answers)) {
+      return NextResponse.json({ error: "bad", detail: "Missing required fields" }, { status: 400 });
     }
 
-    const test = await db.test.findUnique({
-      where: { slug: String(slug) },
+    const test = await db.test.findFirst({
+      where: {
+        OR: [
+          effectiveSlug ? { slug: String(effectiveSlug) } : undefined,
+          testId ? { id: String(testId) } : undefined,
+        ].filter(Boolean) as any,
+      },
       include: { questions: { orderBy: { order: "asc" } } },
     });
     if (!test || !test.isPublished) {

@@ -52,10 +52,12 @@ export default function TakeTest({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            slug: test.slug,
             testId: test.id,
-            studentName: student.name,
-            studentPhone: student.phone,
-            studentEmail: student.email || undefined,
+            name: student.name,
+            phone: student.phone,
+            age: student.age,
+            country: student.country,
             answers,
           }),
         });
