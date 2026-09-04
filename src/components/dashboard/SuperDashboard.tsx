@@ -239,6 +239,22 @@ export default function SuperDashboard({ userName }: { userName: string }) {
     } else {
       toast({ title: "حدث خطأ", variant: "destructive" });
     }
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "حجم الصورة كبير جداً (الأقصى 2 ميجابايت)", variant: "destructive" });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const base64 = evt.target?.result as string;
+      if (base64) {
+        setSiteSettings(prev => ({ ...prev, [key]: base64 }));
+        toast({ title: "✅ تم اختيار الصورة، لا تنسَ الضغط على 'حفظ التغييرات'" });
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const saveSettings = async () => {
@@ -729,7 +745,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
               className="space-y-5"
             >
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-extrabold text-purple-900">🖥️ التحكم بالصفحة الرئيسية</h2>
+                <h2 className="text-xl font-extrabold text-purple-900">🖥️ التحكم الشامل بالصفحة الرئيسية والـ Footer</h2>
                 <button
                   onClick={saveSettings}
                   disabled={settingsSaving}
@@ -740,12 +756,15 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                 </button>
               </div>
 
-              {/* Identity */}
+              {/* Identity & Logos */}
               <div className="card-fun p-5 space-y-4">
-                <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2">🏷️ هوية المنصة</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2 flex items-center justify-between">
+                  <span>🏷️ هوية المنصة والشعارات</span>
+                  <span className="text-xs text-purple-500 font-normal">الشعار والتميمة والأسماء الرئيسية</span>
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="font-bold text-purple-800 text-sm">اسم المنصة</Label>
+                    <Label className="font-bold text-purple-800 text-sm">اسم المنصة (الرئيسي)</Label>
                     <Input
                       value={siteSettings.siteName || ""}
                       onChange={(e) => setSiteSettings(prev => ({ ...prev, siteName: e.target.value }))}
@@ -759,11 +778,11 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                       value={siteSettings.instituteName || ""}
                       onChange={(e) => setSiteSettings(prev => ({ ...prev, instituteName: e.target.value }))}
                       className="h-11 rounded-2xl border-2 border-purple-200"
-                      placeholder="معهد السلام التثقافي"
+                      placeholder="معهد السلام الثقافي"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="font-bold text-purple-800 text-sm">رقم التواصل (الفوتر)</Label>
+                    <Label className="font-bold text-purple-800 text-sm">رقم التواصل الأكاديمي</Label>
                     <Input
                       value={siteSettings.contactPhone || ""}
                       onChange={(e) => setSiteSettings(prev => ({ ...prev, contactPhone: e.target.value }))}
@@ -773,11 +792,57 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                     />
                   </div>
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-purple-50">
+                  {/* Logo Upload */}
+                  <div className="space-y-2 card-fun p-4 bg-purple-50/50 !border-purple-100">
+                    <Label className="font-bold text-purple-900 text-sm block">🖼️ شعار المعهد / المنصة (Header Logo)</Label>
+                    <div className="flex items-center gap-3">
+                      {siteSettings.logoUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={siteSettings.logoUrl} alt="الشعار الحالي" className="w-12 h-12 object-contain rounded-lg border bg-white p-1" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg border bg-white flex items-center justify-center text-xl">🦉</div>
+                      )}
+                      <div className="flex-1 space-y-1">
+                        <label className="btn-fun bg-purple-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer inline-block">
+                          📤 رفع شعار جديد
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "logoUrl")} />
+                        </label>
+                        {siteSettings.logoUrl && (
+                          <button onClick={() => setSiteSettings(prev => ({ ...prev, logoUrl: "" }))} className="text-xs text-rose-600 underline block font-bold">
+                            إزالة الشعار المخصص
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mascot Upload */}
+                  <div className="space-y-2 card-fun p-4 bg-purple-50/50 !border-purple-100">
+                    <Label className="font-bold text-purple-900 text-sm block">🦉 صورة البومة المعلمة / التميمة (Hero Mascot)</Label>
+                    <div className="flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={siteSettings.mascotUrl || "/images/mascot-welcome.png"} alt="التميمة" className="w-12 h-12 object-contain rounded-lg border bg-white p-1" />
+                      <div className="flex-1 space-y-1">
+                        <label className="btn-fun bg-purple-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl cursor-pointer inline-block">
+                          📤 تغيير صورة التميمة
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "mascotUrl")} />
+                        </label>
+                        {siteSettings.mascotUrl && (
+                          <button onClick={() => setSiteSettings(prev => ({ ...prev, mascotUrl: "" }))} className="text-xs text-rose-600 underline block font-bold">
+                            استعادة الصورة الافتراضية
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Hero Banner */}
               <div className="card-fun p-5 space-y-4">
-                <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2">🦸 البانر الرئيسي (اختياري)</h3>
+                <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2">🦸 البانر الرئيسي والعناوين</h3>
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-1.5">
                     <Label className="font-bold text-purple-800 text-sm">العنوان الرئيسي (فوق الصفحة)</Label>
@@ -785,33 +850,180 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                       value={siteSettings.heroTitle || ""}
                       onChange={(e) => setSiteSettings(prev => ({ ...prev, heroTitle: e.target.value }))}
                       className="h-11 rounded-2xl border-2 border-purple-200"
-                      placeholder="اكتشف مستواك في الإنجليزية..."
+                      placeholder="مغامرة المستوى"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="font-bold text-purple-800 text-sm">العنوان الفرعي</Label>
+                    <Label className="font-bold text-purple-800 text-sm">العنوان الفرعي الوصفي</Label>
                     <Input
                       value={siteSettings.heroSubtitle || ""}
                       onChange={(e) => setSiteSettings(prev => ({ ...prev, heroSubtitle: e.target.value }))}
                       className="h-11 rounded-2xl border-2 border-purple-200"
-                      placeholder="اختبارات تفاعلية مجانية..."
+                      placeholder="منصة الاختبارات التعليمية التفاعلية — معهد السلام الثقافي"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="font-bold text-purple-800 text-sm">📢 إعلان / شريط ترحيبي علوي (اختياري)</Label>
+                    <textarea
+                      value={siteSettings.welcomeMessage || ""}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, welcomeMessage: e.target.value }))}
+                      className="w-full h-20 rounded-2xl border-2 border-purple-200 p-3 text-sm font-semibold text-purple-900 focus:outline-none focus:border-purple-400 resize-none"
+                      placeholder="🎉 مرحباً بكم! افتتحنا قسم الاختبارات الجديدة لهذا الموسم..."
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Announcement */}
+              {/* Accreditation Section Control */}
               <div className="card-fun p-5 space-y-4">
-                <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2">📢 إعلان / رسالة ترحيبية</h3>
-                <p className="text-sm text-purple-500 font-semibold">تظهر في بداية الصفحة للزوار. اتركها فارغة لإخفائها.</p>
-                <textarea
-                  value={siteSettings.welcomeMessage || ""}
-                  onChange={(e) => setSiteSettings(prev => ({ ...prev, welcomeMessage: e.target.value }))}
-                  className="w-full h-24 rounded-2xl border-2 border-purple-200 p-3 text-sm font-semibold text-purple-900 focus:outline-none focus:border-purple-400 resize-none"
-                  placeholder="🎉 مرحباً بكم! افتتحنا قسم الاختبارات الجديدة لهذا الموسم..."
-                />
+                <div className="flex items-center justify-between border-b border-purple-100 pb-2">
+                  <h3 className="font-extrabold text-purple-900 text-base">🛡️ قسم الاعتماد العلمي والأكاديمي</h3>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-xs font-bold text-purple-700">إظهار القسم</span>
+                    <input
+                      type="checkbox"
+                      checked={siteSettings.showAccreditation !== "false"}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, showAccreditation: e.target.checked ? "true" : "false" }))}
+                      className="w-4 h-4 rounded text-purple-600"
+                    />
+                  </label>
+                </div>
+                {siteSettings.showAccreditation !== "false" && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="font-bold text-purple-800 text-sm">عنوان الاعتماد</Label>
+                        <Input
+                          value={siteSettings.accreditationTitle || ""}
+                          onChange={(e) => setSiteSettings(prev => ({ ...prev, accreditationTitle: e.target.value }))}
+                          className="h-11 rounded-2xl border-2 border-purple-200"
+                          placeholder="الاعتماد العلمي والأكاديمي"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="font-bold text-purple-800 text-sm">شعار قسم الاعتماد</Label>
+                        <label className="btn-fun bg-cyan-600 text-white font-bold text-xs px-3 py-2.5 rounded-xl cursor-pointer block text-center">
+                          📤 رفع شعار الاعتماد
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, "accreditationLogoUrl")} />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="font-bold text-purple-800 text-sm">وصف الاعتماد العلمي</Label>
+                      <Input
+                        value={siteSettings.accreditationDesc || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, accreditationDesc: e.target.value }))}
+                        className="h-11 rounded-2xl border-2 border-purple-200"
+                        placeholder="مبني على الإطار الأوروبي CEFR ودليل تشخيصي معتمد"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="font-bold text-purple-800 text-sm">صاحب الاعتماد / اسم المؤسسة الشريكة</Label>
+                      <Input
+                        value={siteSettings.accreditationAuthor || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, accreditationAuthor: e.target.value }))}
+                        className="h-11 rounded-2xl border-2 border-purple-200"
+                        placeholder="أ. رضاء البيساني — مؤسسة قيادة التعلم المرح (LFL) × معهد السلام الثقافي"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Features Section Control */}
+              <div className="card-fun p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-purple-100 pb-2">
+                  <h3 className="font-extrabold text-purple-900 text-base">🎯 قسم مميزات المنصة (الكروت الثلاثة)</h3>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-xs font-bold text-purple-700">إظهار قسم المميزات</span>
+                    <input
+                      type="checkbox"
+                      checked={siteSettings.showFeatures !== "false"}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, showFeatures: e.target.checked ? "true" : "false" }))}
+                      className="w-4 h-4 rounded text-purple-600"
+                    />
+                  </label>
+                </div>
+
+                {siteSettings.showFeatures !== "false" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Feature 1 */}
+                    <div className="space-y-2 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                      <h4 className="font-bold text-xs text-amber-900">الكارت الأول</h4>
+                      <Input
+                        value={siteSettings.feature1Emoji || "🎯"}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, feature1Emoji: e.target.value }))}
+                        className="h-9 rounded-xl border border-amber-300 text-center font-bold"
+                        placeholder="🎯"
+                      />
+                      <Input
+                        value={siteSettings.feature1Title || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, feature1Title: e.target.value }))}
+                        className="h-9 rounded-xl border border-amber-300 font-bold text-xs"
+                        placeholder="اختبارات تفاعلية"
+                      />
+                      <textarea
+                        value={siteSettings.feature1Desc || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, feature1Desc: e.target.value }))}
+                        className="w-full h-16 rounded-xl border border-amber-300 p-2 text-xs font-medium resize-none"
+                        placeholder="أسئلة مصوّرة وممتعة بتصميم يشبه الألعاب"
+                      />
+                    </div>
+
+                    {/* Feature 2 */}
+                    <div className="space-y-2 p-3 bg-pink-50 rounded-xl border border-pink-200">
+                      <h4 className="font-bold text-xs text-pink-900">الكارت الثاني</h4>
+                      <Input
+                        value={siteSettings.feature2Emoji || "⚡"}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, feature2Emoji: e.target.value }))}
+                        className="h-9 rounded-xl border border-pink-300 text-center font-bold"
+                        placeholder="⚡"
+                      />
+                      <Input
+                        value={siteSettings.feature2Title || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, feature2Title: e.target.value }))}
+                        className="h-9 rounded-xl border border-pink-300 font-bold text-xs"
+                        placeholder="نتيجة فورية"
+                      />
+                      <textarea
+                        value={siteSettings.feature2Desc || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, feature2Desc: e.target.value }))}
+                        className="w-full h-16 rounded-xl border border-pink-300 p-2 text-xs font-medium resize-none"
+                        placeholder="مستواك يُحدد لحظياً وفق معايير علمية معتمدة"
+                      />
+                    </div>
+
+                    {/* Feature 3 */}
+                    <div className="space-y-2 p-3 bg-teal-50 rounded-xl border border-teal-200">
+                      <h4 className="font-bold text-xs text-teal-900">الكارت الثالث</h4>
+                      <Input
+                        value={siteSettings.feature3Emoji || "🛡️"}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, feature3Emoji: e.target.value }))}
+                        className="h-9 rounded-xl border border-teal-300 text-center font-bold"
+                        placeholder="🛡️"
+                      />
+                      <Input
+                        value={siteSettings.feature3Title || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, feature3Title: e.target.value }))}
+                        className="h-9 rounded-xl border border-teal-300 font-bold text-xs"
+                        placeholder="اعتماد علمي"
+                      />
+                      <textarea
+                        value={siteSettings.feature3Desc || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, feature3Desc: e.target.value }))}
+                        className="w-full h-16 rounded-xl border border-teal-300 p-2 text-xs font-medium resize-none"
+                        placeholder="مبني على الإطار الأوروبي CEFR ودليل تشخيصي معتمد"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer text */}
+              <div className="card-fun p-5 space-y-4">
+                <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2">🦶 أسفل الصفحة (Footer)</h3>
                 <div className="space-y-1.5">
-                  <Label className="font-bold text-purple-800 text-sm">نص الفوتر الإضافي</Label>
+                  <Label className="font-bold text-purple-800 text-sm">نص الحقوق والختام</Label>
                   <Input
                     value={siteSettings.footerText || ""}
                     onChange={(e) => setSiteSettings(prev => ({ ...prev, footerText: e.target.value }))}
@@ -823,7 +1035,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
 
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-sm text-blue-800 font-semibold flex gap-2">
                 <span>💡</span>
-                <span>التغييرات تُطبَّق فوراً على الصفحة الرئيسية بعد الحفظ وتحديث المتصفح.</span>
+                <span>عند النقر على "💾 حفظ التغييرات"، تُطبَّق كافة التعديلات مباشرة على كافة صفحات المنصة.</span>
               </div>
             </motion.div>
           )}

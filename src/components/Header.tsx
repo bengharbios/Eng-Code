@@ -10,31 +10,45 @@ export default function Header({
   onLogin,
   onStudent,
   onDashboard,
+  siteSettings = {},
 }: {
   onHome: () => void;
   onLogin: () => void;
   onStudent: () => void;
   onDashboard: () => void;
+  siteSettings?: Record<string, string>;
 }) {
   const { lang, setLang, t } = useI18n();
   const { user, logout } = useSession();
+
+  const logoUrl = siteSettings.logoUrl || "/images/institute-logo.webp";
+  const siteName = siteSettings.siteName || t("appName");
+  const instituteName = siteSettings.instituteName || "معهد السلام الثقافي";
 
   return (
     <header className="sticky top-0 z-30 bg-white/75 backdrop-blur-md border-b-2 border-purple-100">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
         <button onClick={onHome} className="flex items-center gap-2 group shrink-0">
-          <span className="text-3xl group-hover:scale-110 transition-transform">🦉</span>
+          {siteSettings.logoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={logoUrl}
+              alt={instituteName}
+              className="w-10 h-10 object-contain rounded-lg border border-purple-200 bg-white p-0.5 group-hover:scale-105 transition-transform"
+            />
+          ) : (
+            <span className="text-3xl group-hover:scale-110 transition-transform">🦉</span>
+          )}
           <div className="text-right leading-tight hidden sm:block">
-            <div className="font-extrabold text-lg text-purple-900">{t("appName")}</div>
+            <div className="font-extrabold text-lg text-purple-900">{siteName}</div>
             <div className="text-[10px] text-purple-400 font-bold flex items-center gap-1">
-              <Image
-                src="/images/institute-logo.webp"
-                alt="معهد السلام التثقافي"
-                width={14}
-                height={14}
-                className="rounded-sm object-contain"
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoUrl}
+                alt={instituteName}
+                className="w-3.5 h-3.5 rounded-sm object-contain"
               />
-              معهد السلام التثقافي
+              {instituteName}
             </div>
           </div>
         </button>

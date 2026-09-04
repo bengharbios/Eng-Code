@@ -97,6 +97,7 @@ function AppShell() {
         onLogin={() => setView("login")}
         onStudent={() => setView("student")}
         onDashboard={goDashboard}
+        siteSettings={siteSettings}
       />
 
       <div className="flex-1">

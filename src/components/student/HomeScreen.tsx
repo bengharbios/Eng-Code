@@ -70,15 +70,13 @@ export default function HomeScreen({
         <motion.div
           animate={{ y: [0, -10, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          className="relative w-44 h-44 sm:w-56 sm:h-56"
+          className="relative w-44 h-44 sm:w-56 sm:h-56 flex items-center justify-center"
         >
-          <Image
-            src="/images/mascot-welcome.png"
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={siteSettings.mascotUrl || "/images/mascot-welcome.png"}
             alt="بومة معلمة لطيفة"
-            fill
-            priority
-            sizes="(max-width: 640px) 176px, 224px"
-            className="object-contain drop-shadow-xl"
+            className="w-full h-full object-contain drop-shadow-xl"
           />
         </motion.div>
       </motion.div>
@@ -88,65 +86,91 @@ export default function HomeScreen({
         animate={{ opacity: 1, y: 0 }}
         className="text-4xl sm:text-5xl font-extrabold text-center text-purple-900 mt-2"
       >
-        {siteSettings.heroTitle || t("appName")} <span className="text-orange-500">🚀</span>
+        {siteSettings.heroTitle || siteSettings.siteName || t("appName")}{" "}
+        <span className="text-orange-500">🚀</span>
       </motion.h1>
 
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="mt-3 text-lg text-purple-600 text-center font-semibold"
+        className="mt-3 text-lg text-purple-600 text-center font-semibold max-w-2xl"
       >
         {siteSettings.heroSubtitle || t("tagline")}
       </motion.p>
 
       {/* ===== Accreditation banner ===== */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="mt-6 w-full max-w-3xl card-fun p-4 sm:p-5 bg-gradient-to-l from-cyan-50 to-teal-50 !border-cyan-200"
-      >
-        <div className="flex items-start gap-3">
-          <Image
-            src="/images/institute-logo.webp"
-            alt="شعار معهد السلام التثقافي"
-            width={52}
-            height={52}
-            className="rounded-xl object-contain border-2 border-cyan-100 bg-white p-1"
-          />
-          <div>
-            <h3 className="font-extrabold text-cyan-900 text-base sm:text-lg">
-              🛡️ {t("accreditationTitle")}
-            </h3>
-            <p className="text-cyan-800/90 text-sm mt-1 leading-relaxed font-medium">
-              {t("feature3Desc")}
-            </p>
-            <p className="text-cyan-600 text-xs mt-1.5 font-bold">
-              أ. رضاء البيساني — مؤسسة قيادة التعلم المرح (LFL) × معهد السلام التثقافي
-            </p>
+      {siteSettings.showAccreditation !== "false" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mt-6 w-full max-w-3xl card-fun p-4 sm:p-5 bg-gradient-to-l from-cyan-50 to-teal-50 !border-cyan-200"
+        >
+          <div className="flex items-start gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={
+                siteSettings.accreditationLogoUrl ||
+                siteSettings.logoUrl ||
+                "/images/institute-logo.webp"
+              }
+              alt="شعار المعهد"
+              className="w-13 h-13 rounded-xl object-contain border-2 border-cyan-100 bg-white p-1 shrink-0"
+            />
+            <div>
+              <h3 className="font-extrabold text-cyan-900 text-base sm:text-lg">
+                🛡️ {siteSettings.accreditationTitle || t("accreditationTitle")}
+              </h3>
+              <p className="text-cyan-800/90 text-sm mt-1 leading-relaxed font-medium">
+                {siteSettings.accreditationDesc || t("feature3Desc")}
+              </p>
+              <p className="text-cyan-600 text-xs mt-1.5 font-bold">
+                {siteSettings.accreditationAuthor ||
+                  `أ. رضاء البيساني — مؤسسة قيادة التعلم المرح (LFL) × ${
+                    siteSettings.instituteName || "معهد السلام الثقافي"
+                  }`}
+              </p>
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
 
       {/* ===== Feature chips ===== */}
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl">
-        {[
-          { emoji: "🎯", title: t("feature1Title"), desc: t("feature1Desc"), color: "bg-amber-100 border-amber-300" },
-          { emoji: "⚡", title: t("feature2Title"), desc: t("feature2Desc"), color: "bg-pink-100 border-pink-300" },
-          { emoji: "🛡️", title: t("feature3Title"), desc: t("feature3Desc"), color: "bg-teal-100 border-teal-300" },
-        ].map((f, i) => (
-          <motion.div
-            key={i}
-            whileHover={{ y: -6, rotate: i === 1 ? 0 : i === 0 ? -1.5 : 1.5 }}
-            className={`card-fun p-4 text-center border-2 ${f.color} bg-opacity-70`}
-          >
-            <div className="text-3xl mb-1">{f.emoji}</div>
-            <div className="font-bold text-purple-900">{f.title}</div>
-            <div className="text-xs text-purple-600 mt-1 leading-relaxed">{f.desc}</div>
-          </motion.div>
-        ))}
-      </div>
+      {siteSettings.showFeatures !== "false" && (
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl">
+          {[
+            {
+              emoji: siteSettings.feature1Emoji || "🎯",
+              title: siteSettings.feature1Title || t("feature1Title"),
+              desc: siteSettings.feature1Desc || t("feature1Desc"),
+              color: "bg-amber-100 border-amber-300",
+            },
+            {
+              emoji: siteSettings.feature2Emoji || "⚡",
+              title: siteSettings.feature2Title || t("feature2Title"),
+              desc: siteSettings.feature2Desc || t("feature2Desc"),
+              color: "bg-pink-100 border-pink-300",
+            },
+            {
+              emoji: siteSettings.feature3Emoji || "🛡️",
+              title: siteSettings.feature3Title || t("feature3Title"),
+              desc: siteSettings.feature3Desc || t("feature3Desc"),
+              color: "bg-teal-100 border-teal-300",
+            },
+          ].map((f, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ y: -6, rotate: i === 1 ? 0 : i === 0 ? -1.5 : 1.5 }}
+              className={`card-fun p-4 text-center border-2 ${f.color} bg-opacity-70`}
+            >
+              <div className="text-3xl mb-1">{f.emoji}</div>
+              <div className="font-bold text-purple-900">{f.title}</div>
+              <div className="text-xs text-purple-600 mt-1 leading-relaxed">{f.desc}</div>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {/* ===== Tests gallery ===== */}
       <div className="mt-10 w-full max-w-4xl">
