@@ -2,44 +2,47 @@
 
 import { motion } from "framer-motion";
 import { playClick } from "@/lib/sounds";
+import { useI18n } from "@/lib/i18n";
+import { useSession } from "@/components/SessionProvider";
 
 export type BottomNavTab = "home" | "take" | "student" | "login" | "instructor" | "super";
 
 export default function BottomNav({
   currentView,
   onNavigate,
-  isTakingTest = false,
 }: {
   currentView: BottomNavTab;
   onNavigate: (view: BottomNavTab) => void;
   isTakingTest?: boolean;
 }) {
-  // Hide bottom nav during active quiz taking to maximize focus & screen space
-  if (isTakingTest) return null;
+  const { t } = useI18n();
+  const { user } = useSession();
+
+  const isStaff = user && (user.role === "super" || user.role === "instructor");
 
   const tabs = [
     {
       id: "home" as BottomNavTab,
-      label: "الرئيسية",
+      label: t("backHome").replace("← ", ""),
       icon: "🏠",
       badge: null,
     },
     {
       id: "take" as BottomNavTab,
-      label: "الاختبارات",
+      label: t("test"),
       icon: "🎯",
-      badge: "جديد",
+      badge: null,
     },
     {
       id: "student" as BottomNavTab,
-      label: "نتائجي",
+      label: t("myResults"),
       icon: "📋",
       badge: null,
     },
     {
       id: "login" as BottomNavTab,
-      label: currentView === "super" || currentView === "instructor" ? "لوحتي" : "دخول",
-      icon: currentView === "super" || currentView === "instructor" ? "🦸" : "🔑",
+      label: isStaff ? t("dashboard") : user ? t("logout") : t("login"),
+      icon: isStaff ? "📊" : user ? "🚪" : "🔑",
       badge: null,
     },
   ];

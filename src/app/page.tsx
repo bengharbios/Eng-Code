@@ -41,6 +41,10 @@ function AppShell() {
       setView("login");
       return;
     }
+    if (user.role === "student") {
+      setView("student");
+      return;
+    }
     setView(user.role === "super" ? "super" : "instructor");
   }, [user]);
 
@@ -70,10 +74,10 @@ function AppShell() {
       .catch(() => setSettingsLoaded(true));
   }, []);
 
-  // Show login gate if accessing dashboards while logged out
+  // Show login gate or redirect to student lookup if trying to access staff dashboards
   const effectiveView: View =
-    (view === "instructor" || view === "super") && !sessionLoading && !user
-      ? "login"
+    (view === "instructor" || view === "super") && (!user || user.role === "student")
+      ? (user?.role === "student" ? "student" : "login")
       : view;
 
   // Auto-reset scroll position to top whenever view changes
@@ -97,11 +101,14 @@ function AppShell() {
     login: (
       <LoginView
         onBack={goHome}
-        onSuccess={(role) => setView(role === "super" ? "super" : "instructor")}
+        onSuccess={(role) => {
+          if (role === "student") setView("student");
+          else setView(role === "super" ? "super" : "instructor");
+        }}
       />
     ),
-    instructor: user ? <InstructorDashboard userName={user.name} /> : null,
-    super: user ? <SuperDashboard userName={user.name} /> : null,
+    instructor: user && user.role === "instructor" ? <InstructorDashboard userName={user.name} /> : null,
+    super: user && user.role === "super" ? <SuperDashboard userName={user.name} /> : null,
   };
 
   return (

@@ -88,46 +88,73 @@ export default function Header({
             ))}
           </select>
 
-          <button
-            onClick={() => {
-              playClick();
-              onStudent();
-            }}
-            className="rounded-full bg-amber-100 border-2 border-amber-300 text-amber-800 font-bold text-sm px-3.5 py-1.5 hover:scale-105 transition-transform"
-          >
-            {t("myResults")}
-          </button>
-
-          {user ? (
-            <>
-              <button
-                onClick={() => {
-                  playClick();
-                  onDashboard();
-                }}
-                className="rounded-full bg-purple-100 border-2 border-purple-300 text-purple-800 font-bold text-sm px-3.5 py-1.5 hover:scale-105 transition-transform"
-              >
-                📊 {t("dashboard")}
-              </button>
-              <button
-                onClick={() => logout()}
-                title={user.name}
-                className="rounded-full bg-white border-2 border-purple-200 text-purple-500 font-bold text-sm px-3 py-1.5 hover:bg-purple-50"
-              >
-                {t("logout")}
-              </button>
-            </>
-          ) : (
+          {/* Desktop buttons */}
+          <div className="hidden sm:flex items-center gap-2">
             <button
               onClick={() => {
                 playClick();
-                onLogin();
+                onStudent();
               }}
-              className="rounded-full bg-purple-600 border-2 border-purple-700 text-white font-bold text-sm px-4 py-1.5 hover:scale-105 transition-transform shadow"
+              className="rounded-full bg-amber-100 border-2 border-amber-300 text-amber-800 font-bold text-sm px-3.5 py-1.5 hover:scale-105 transition-transform"
             >
-              {t("login")}
+              {t("myResults")}
             </button>
-          )}
+
+            {user ? (
+              <>
+                {(user.role === "instructor" || user.role === "super") && (
+                  <button
+                    onClick={() => {
+                      playClick();
+                      onDashboard();
+                    }}
+                    className="rounded-full bg-purple-100 border-2 border-purple-300 text-purple-800 font-bold text-sm px-3.5 py-1.5 hover:scale-105 transition-transform"
+                  >
+                    📊 {t("dashboard")}
+                  </button>
+                )}
+                <button
+                  onClick={() => logout()}
+                  title={user.name}
+                  className="rounded-full bg-white border-2 border-purple-200 text-purple-600 font-bold text-sm px-3.5 py-1.5 hover:bg-purple-50"
+                >
+                  {t("logout")} ({user.name.split(" ")[0]})
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  playClick();
+                  onLogin();
+                }}
+                className="rounded-full bg-purple-600 border-2 border-purple-700 text-white font-bold text-sm px-4 py-1.5 hover:scale-105 transition-transform shadow"
+              >
+                {t("login")}
+              </button>
+            )}
+          </div>
+
+          {/* Mobile logout/login pill */}
+          <div className="flex sm:hidden items-center gap-1.5">
+            {user ? (
+              <button
+                onClick={() => logout()}
+                className="rounded-full bg-purple-100 border border-purple-300 text-purple-800 font-extrabold text-xs px-2.5 py-1"
+              >
+                {t("logout")} ({user.name.split(" ")[0]})
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  playClick();
+                  onLogin();
+                }}
+                className="rounded-full bg-purple-600 text-white font-extrabold text-xs px-3 py-1 shadow-sm"
+              >
+                {t("login")}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </header>

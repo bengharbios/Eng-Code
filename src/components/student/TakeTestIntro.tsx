@@ -28,10 +28,14 @@ const COUNTRIES = [
 // ===== Intro + Registration steps; quiz & result are rendered by parent =====
 export default function TakeTestIntro({
   test,
+  onStart,
   onBegin,
+  onBack,
 }: {
   test: PublicTest;
-  onBegin: (info: StudentRegInfo) => void;
+  onStart?: (info: StudentRegInfo) => void;
+  onBegin?: (info: StudentRegInfo) => void;
+  onBack?: () => void;
 }) {
   const { t } = useI18n();
   const { user, refresh } = useSession();
@@ -47,6 +51,11 @@ export default function TakeTestIntro({
   const [country, setCountry] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  const handleStart = (info: StudentRegInfo) => {
+    const fn = onStart || onBegin;
+    if (fn) fn(info);
+  };
 
   const qDir = useMemo(() => (isRtlLang(test.language) ? "rtl" : "ltr"), [test.language]);
   const accredLines = test.accreditation
@@ -130,7 +139,7 @@ export default function TakeTestIntro({
       }
       
       await refresh();
-      onBegin({ name: data.student.name, phone: data.student.phone, age: data.student.age.toString(), country: data.student.country });
+      handleStart({ name: data.student.name, phone: data.student.phone, age: data.student.age?.toString() || "0", country: data.student.country || "" });
     } catch (e) {
       setErrors({ form: "تعذر الاتصال بالخادم." });
     } finally {
@@ -142,7 +151,7 @@ export default function TakeTestIntro({
     playClick();
     if (!user) return;
     // user.username holds the phone number for students
-    onBegin({ name: user.name, phone: user.username, age: "0", country: "" }); 
+    handleStart({ name: user.name, phone: user.username, age: "0", country: "" }); 
   };
 
   return (

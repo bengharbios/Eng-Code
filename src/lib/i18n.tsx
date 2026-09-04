@@ -476,6 +476,14 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = lang;
   }, [lang]);
 
+  useEffect(() => {
+    const isRtl = RTL_LANGS.includes(lang);
+    if (typeof document !== "undefined") {
+      document.documentElement.dir = isRtl ? "rtl" : "ltr";
+      document.documentElement.lang = lang;
+    }
+  }, [lang]);
+
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
     try {
@@ -484,7 +492,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: string) => DICTS[lang][key] ?? DICTS.en[key] ?? key,
+    (key: string) => DICTS[lang]?.[key] ?? DICTS.en?.[key] ?? key,
     [lang]
   );
 
