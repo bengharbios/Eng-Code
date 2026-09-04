@@ -222,6 +222,7 @@ export default function HomeScreen({
                     <p className="text-purple-600 text-sm mt-1 leading-relaxed line-clamp-2">
                       {test.description}
                     </p>
+                    <div className="flex items-center gap-2 mt-2 flex-wrap text-[11px] font-bold">
                       {(test as any).ownerName && (
                         <span className="bg-emerald-100 text-emerald-800 rounded-full px-2.5 py-0.5 font-bold">
                           👩‍🏫 {(test as any).ownerName}
