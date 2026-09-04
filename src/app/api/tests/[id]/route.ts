@@ -51,6 +51,7 @@ export async function GET(
       allowRetake: test.allowRetake,
       accreditation: test.accreditation,
       outcomes: test.outcomesJson ? JSON.parse(test.outcomesJson) : null,
+      ownerId: test.ownerId,
       ownerName: test.owner.name,
       attemptsCount: test._count.attempts,
       questions: test.questions.map((q) => ({
@@ -111,6 +112,7 @@ export async function PATCH(
     if (body.outcomes !== undefined)
       data.outcomesJson = body.outcomes ? JSON.stringify(body.outcomes) : "";
     if (body.isPublished !== undefined) data.isPublished = Boolean(body.isPublished);
+    if (body.ownerId && session!.role === "super") data.ownerId = String(body.ownerId);
 
     await db.test.update({ where: { id }, data });
 

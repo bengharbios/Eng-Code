@@ -286,6 +286,9 @@ export default function TakeTestIntro({
                       dir="ltr"
                       className="h-12 text-lg rounded-2xl border-2 border-purple-200 focus-visible:ring-purple-400 bg-purple-50/50 text-right"
                     />
+                    <p className="text-xs text-purple-600 font-bold bg-amber-50 border border-amber-200 p-2.5 rounded-xl">
+                      📱 اكتب رقمك المفعل على واتساب شاملاً المفتاح الدولي بدون 00 أو + (مثال الإمارات: <span dir="ltr" className="font-extrabold text-amber-900">971556503201</span>)
+                    </p>
                     {errors.phone && <p className="text-red-500 text-sm font-semibold">{errors.phone}</p>}
                   </div>
                   <Button

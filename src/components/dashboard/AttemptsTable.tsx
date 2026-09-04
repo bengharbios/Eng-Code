@@ -160,10 +160,10 @@ export default function AttemptsTable({
                           📞
                         </a>
                         <a
-                          href={`https://wa.me/${a.phone.replace(/\D/g, "")}`}
+                          href={`https://wa.me/${a.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`أهلاً ${a.name}، تواصلنا معك من معهد السلام الثقافي بخصوص نتيجتك في ${a.testTitle}`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          title="واتساب"
+                          title="تواصل مباشر عبر واتساب"
                           className="w-7 h-7 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-sm"
                         >
                           💬

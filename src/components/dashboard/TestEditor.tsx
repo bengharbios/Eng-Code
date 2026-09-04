@@ -16,6 +16,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, TEST_LANGUAGES } from "@/lib/i18n";
+import { useSession } from "@/components/SessionProvider";
 import { playClick } from "@/lib/sounds";
 import type { Outcome, OutcomesDoc } from "@/lib/scoring";
 
@@ -94,6 +95,19 @@ export default function TestEditor({
     tie: { key: "TIE", emoji: "🔄", title: "", description: "", program: "", color: "#14b8a6" },
   });
 
+  const { user } = useSession();
+  const [instructorsList, setInstructorsList] = useState<{ id: string; name: string; username: string }[]>([]);
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string>("");
+
+  useEffect(() => {
+    if (user?.role === "super") {
+      fetch("/api/instructors", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((list) => Array.isArray(list) && setInstructorsList(list))
+        .catch(() => {});
+    }
+  }, [user]);
+
   useEffect(() => {
     if (testId === null) return;
     let alive = true;
@@ -105,6 +119,7 @@ export default function TestEditor({
         setIsSystem(Boolean(d.isSystem));
         setSlug(d.slug);
         setTitle(d.title);
+        if (d.ownerId) setSelectedOwnerId(d.ownerId);
         setDescription(d.description);
         setLanguage(d.language);
         setKind(d.kind);
@@ -229,6 +244,7 @@ export default function TestEditor({
         timeLimitMin,
         allowRetake,
         accreditation,
+        ownerId: selectedOwnerId || undefined,
         outcomes: kind === "diagnostic" ? outcomes : null,
         questions: questions.map((q) => ({
           ...q,
@@ -297,6 +313,29 @@ export default function TestEditor({
           <div className="space-y-2 sm:col-span-2">
             <Label className="font-bold text-purple-900">{t("testDesc")}</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="rounded-2xl border-2 border-purple-200" />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label className="font-bold text-purple-900">👩‍🏫 المحاضر صاحب الاختبار</Label>
+            {user?.role === "super" ? (
+              <Select value={selectedOwnerId} onValueChange={setSelectedOwnerId}>
+                <SelectTrigger className="h-11 rounded-2xl border-2 border-purple-200 bg-white">
+                  <SelectValue placeholder="اختر المحاضر صاحب الاختبار..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {instructorsList.map((inst) => (
+                    <SelectItem key={inst.id} value={inst.id}>
+                      {inst.name} (@{inst.username})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input
+                value={user?.name || "المحاضر"}
+                disabled
+                className="h-11 rounded-2xl border-2 border-purple-200 bg-purple-50 font-bold text-purple-900"
+              />
+            )}
           </div>
           <div className="space-y-2">
             <Label className="font-bold text-purple-900">{t("testKind")}</Label>

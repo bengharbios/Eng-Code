@@ -12,23 +12,27 @@ export async function GET(req: NextRequest) {
       const tests = await db.test.findMany({
         where: { isPublished: true },
         orderBy: { createdAt: "asc" },
-        select: {
-          id: true,
-          slug: true,
-          title: true,
-          description: true,
-          emoji: true,
-          color: true,
-          kind: true,
-          language: true,
-          levelTag: true,
-          timeLimitMin: true,
-          isSystem: true,
+        include: {
+          owner: { select: { name: true } },
           _count: { select: { questions: true } },
         },
       });
       return NextResponse.json(
-        tests.map((t) => ({ ...t, questionCount: t._count.questions, _count: undefined }))
+        tests.map((t) => ({
+          id: t.id,
+          slug: t.slug,
+          title: t.title,
+          description: t.description,
+          emoji: t.emoji,
+          color: t.color,
+          kind: t.kind,
+          language: t.language,
+          levelTag: t.levelTag,
+          timeLimitMin: t.timeLimitMin,
+          isSystem: t.isSystem,
+          ownerName: t.owner?.name || "المعهد",
+          questionCount: t._count.questions,
+        }))
       );
     }
 
@@ -121,7 +125,7 @@ export async function POST(req: NextRequest) {
         allowRetake: Boolean(allowRetake),
         accreditation: String(accreditation).slice(0, 3000),
         outcomesJson: outcomes ? JSON.stringify(outcomes) : "",
-        ownerId: session.uid,
+        ownerId: (body.ownerId && session.role === "super") ? String(body.ownerId) : session.uid,
         questions: {
           create: qs.map((q, i) => ({
             order: i,
