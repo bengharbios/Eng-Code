@@ -30,8 +30,10 @@ if (tUrl && tUrl !== "undefined" && tAuth && tAuth !== "undefined") {
       authToken: tAuth.replace(/"/g, '').trim(),
     } as any)
     
-    // Prisma Engine reads DATABASE_URL from process.env because of schema.prisma.
-    process.env.DATABASE_URL = tUrl.replace(/"/g, '').trim();
+    // Ensure process.env has the forced valid credentials for Prisma Engine
+    process.env.TURSO_DATABASE_URL = tUrl;
+    process.env.TURSO_AUTH_TOKEN = tAuth;
+    process.env.DATABASE_URL = `${tUrl}?authToken=${tAuth}`;
     
     prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter, log: ['query'] })
   } catch (e) {
