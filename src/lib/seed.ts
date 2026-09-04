@@ -4,10 +4,10 @@ import { QUESTIONS } from "@/lib/quiz-data";
 
 // ===== Accreditation text (from الدليل التشخيصي والاعتماد العلمي) =====
 export const ACCREDITATION_TEXT =
-  "يستند هذا الاختبار إلى منهجيات علمية حديثة في تعليم اللغات: معايير الإطار الأوروبي المرجعي للغات (CEFR) كأساس للأداء الوظيفي وتحديد المستويات من A1 إلى C1، ومعيار الموقف النفسي (Language Attitude) لقياس تأثير حاجز الخوف من الخطأ (Affective Filter) على الطلاقة، ومعيار المعالجة الفعلية (Core Processing) للتفريق بين الترجمة الحرفية البطيئة والإنتاج اللغوي التلقائي.";
+  "يستند هذا الاختبار إلى منهجيات علمية حديثة في تعليم اللغات:\n• معايير الإطار الأوروبي المرجعي للغات (CEFR): كأساس للأداء الوظيفي وتحديد المستويات الدقيقة من A1 إلى C1.\n• معيار الموقف النفسي (Language Attitude): لقياس تأثير حاجز الخوف من الخطأ (Affective Filter) على الطلاقة والإنتاج اللغوي.\n• معيار المعالجة الفعلية (Core Processing): للتفريق بين الترجمة الحرفية البطيئة والإنتاج اللغوي الفوري التلقائي.";
 
 export const ACCREDITATION_FOOTER =
-  "إعداد: أ. رضاء البيساني — مؤسسة قيادة التعلم المرح (LFL) | اعتماد: معهد السلام التثقافي";
+  "إعداد وتصميم: د. دعاء البيساني — مؤسسة قيادة التعلم المرح (LFL) | بالتعاون مع معهد السلام الثقافي";
 
 // ===== Diagnostic test content (from the uploaded PDF) =====
 const DIAGNOSTIC_QUESTIONS: {
@@ -62,33 +62,33 @@ const DIAGNOSTIC_OUTCOMES = {
       key: "A",
       emoji: "🌱",
       title: "مستوى المبتدئ وبناء الأساس (A1-A2)",
-      description: "يعتمد على الترجمة الحرفية ويعاني من حاجز نفسي قوي.",
-      program: "برنامج الإنجليزية العامة التأسيسي (General English)",
+      description: "يعتمد على الترجمة الحرفية الفردية ويحتاج لتطوير مهارات التعبير والإنتاج اللغوي التلقائي.",
+      program: "المستوى المبتدئ (A1 - A2)",
       color: "#22c55e",
     },
     {
       key: "B",
       emoji: "🌳",
-      title: "مستوى التعبير والطلاقة المهنية (B1-B2)",
-      description: "يمتلك أساساً جيداً ويحتاج لدعم مهارات المحادثة والأعمال.",
-      program: "برنامج المحادثة التفاعلية أو إنجليزية الأعمال (Conversational / Business English)",
+      title: "مستوى التعبير والطلاقة (B1-B2)",
+      description: "يمتلك أساساً جيداً في القواعد والتواصل وتنقصه الممارسة والطلاقة المتقدمة في البيئة المهنية.",
+      program: "المستوى المتوسط (B1 - B2)",
       color: "#f59e0b",
     },
     {
       key: "C",
       emoji: "🚀",
       title: "مستوى الطلاقة والصقل المتقدم (C1)",
-      description: "حصيلة لغوية ممتازة ولغة قوية وهدف التطور التخصصي.",
-      program: "الدورات المتقدمة أو التخصصية (Advanced / ESP)",
+      description: "حصيلة لغوية ممتازة ولغة قوية، وهدفه صقل المهارات للوصول لطلاقة تامة وتخصصية.",
+      program: "المستوى المتقدم (C1)",
       color: "#8b5cf6",
     },
   ],
   tie: {
     key: "TIE",
     emoji: "🔄",
-    title: "مستوى الانتقال / التذبذب",
-    description: "يفهم جيداً لكنه يتعثر في الإنتاج اللغوي.",
-    program: "برنامج المحادثة التأسيسية الموجهة (Core Conversation)",
+    title: "مستوى الانتقال والتطوير",
+    description: "يفهم الفكرة العامة بوضوح لكنه يتعثر أحياناً في الإنتاج اللغوي والتعبير الفوري.",
+    program: "مستوى التجسير والتطوير",
     color: "#14b8a6",
   },
 };
@@ -106,10 +106,15 @@ export async function ensureSeed() {
       duaa = await db.user.create({
         data: {
           username: "duaa",
-          name: "الدكتورة دعاء",
+          name: "د. دعاء البيساني",
           role: "instructor",
           passwordHash: hashPassword("duaa2026"),
         },
+      });
+    } else if (duaa.name !== "د. دعاء البيساني") {
+      await db.user.update({
+        where: { id: duaa.id },
+        data: { name: "د. دعاء البيساني" },
       });
     }
 
@@ -127,19 +132,22 @@ export async function ensureSeed() {
       });
     }
 
-    let ridha = await db.user.findFirst({
-      where: { username: "ridha" },
+    // Update existing diagnostic & placement test details to reflect Dr. Duaa's full name & accreditation
+    await db.test.updateMany({
+      where: { slug: "tashkhees" },
+      data: {
+        description: "اختبار تشخيصي من 5 أسئلة وفق الدليل التشخيصي المعتمد، يقيس حاجزك النفسي ونمط معالجتك اللغوية ليقترح لك المستوى والمسار الأمثل للبدء به.",
+        accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
+        outcomesJson: JSON.stringify(DIAGNOSTIC_OUTCOMES),
+      },
     });
-    if (!ridha) {
-      await db.user.create({
-        data: {
-          username: "ridha",
-          name: "أ. رضاء البيساني",
-          role: "instructor",
-          passwordHash: hashPassword("ridha2026"),
-        },
-      });
-    }
+
+    await db.test.updateMany({
+      where: { slug: "placement" },
+      data: {
+        accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
+      },
+    });
 
     // 2. Ensure system tests exist
     const testCount = await db.test.count();
@@ -187,7 +195,7 @@ export async function ensureSeed() {
         slug: "tashkhees",
         title: "الاختبار التشخيصي — تحديد المسار الأمثل",
         description:
-          "اختبار تشخيصي من 5 أسئلة وفق الدليل التشخيصي المعتمد، يقيس مهاراتك اللغوية الأربع وحاجزك النفسي ليقترح لك البرنامج الأمثل للبدء به.",
+          "اختبار تشخيصي من 5 أسئلة وفق الدليل التشخيصي المعتمد، يقيس حاجزك النفسي ونمط معالجتك اللغوية ليقترح لك المستوى والمسار الأمثل للبدء به.",
         language: "ar",
         kind: "diagnostic",
         isSystem: true,

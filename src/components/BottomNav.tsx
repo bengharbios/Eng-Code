@@ -53,6 +53,7 @@ export default function BottomNav({
         {tabs.map((t) => {
           const isActive =
             currentView === t.id ||
+            (t.id === "take" && (currentView === "tests" || currentView === "take")) ||
             (t.id === "login" && (currentView === "super" || currentView === "instructor"));
 
           return (
