@@ -13,12 +13,13 @@ import SuperDashboard from "@/components/dashboard/SuperDashboard";
 import { I18nProvider } from "@/lib/i18n";
 import { SessionProvider, useSession } from "@/components/SessionProvider";
 
+import TestsPage from "@/components/student/TestsPage";
 import BottomNav from "@/components/BottomNav";
 
-type View = "home" | "take" | "student" | "login" | "instructor" | "super";
+type View = "home" | "tests" | "take" | "student" | "login" | "instructor" | "super";
 
 function AppShell() {
-  const { user, loading: sessionLoading } = useSession();
+  const { user, loading: sessionLoading, logout } = useSession();
   const [view, setView] = useState<View>("home");
   const [takeSlug, setTakeSlug] = useState<string | null>(null);
 
@@ -94,6 +95,13 @@ function AppShell() {
         settingsLoaded={settingsLoaded}
       />
     ),
+    tests: (
+      <TestsPage
+        onTake={openTake}
+        onBack={goHome}
+        siteSettings={siteSettings}
+      />
+    ),
     take: takeSlug ? (
       <TakeTest slug={takeSlug} onBack={goHome} siteSettings={siteSettings} />
     ) : null,
@@ -157,19 +165,20 @@ function AppShell() {
         onNavigate={(tab) => {
           if (tab === "home") {
             goHome();
-            window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
           } else if (tab === "take") {
-            goHome();
-            setTimeout(() => {
-              const el = document.getElementById("tests-gallery");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
-            }, 60);
+            setView("tests");
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
           } else if (tab === "student") {
             setView("student");
             window.scrollTo({ top: 0, left: 0, behavior: "instant" });
           } else if (tab === "login") {
-            goDashboard();
-            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+            if (user) {
+              logout();
+              goHome();
+            } else {
+              setView("login");
+              window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+            }
           }
         }}
         isTakingTest={effectiveView === "take"}

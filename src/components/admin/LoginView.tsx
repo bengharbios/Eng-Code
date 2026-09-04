@@ -14,7 +14,7 @@ export default function LoginView({
   onSuccess,
 }: {
   onBack: () => void;
-  onSuccess: (role: "super" | "instructor") => void;
+  onSuccess: (role: "super" | "instructor" | "student") => void;
 }) {
   const { t } = useI18n();
   const { refresh } = useSession();
@@ -34,14 +34,14 @@ export default function LoginView({
         body: JSON.stringify({ username: username.trim(), password }),
       });
       if (!res.ok) {
-        setError(t("badCredentials"));
+        setError("بيانات الدخول غير صحيحة، أو الرقم غير مسجل");
         return;
       }
       const data = await res.json();
       await refresh();
       onSuccess(data.user.role);
     } catch {
-      setError(t("badCredentials"));
+      setError("تعذر الاتصال بالخادم");
     } finally {
       setLoading(false);
     }
@@ -54,21 +54,21 @@ export default function LoginView({
         animate={{ opacity: 1, y: 0 }}
         className="card-fun p-8 w-full max-w-sm text-center"
       >
-        <div className="text-6xl mb-3">🔐</div>
-        <h2 className="text-2xl font-extrabold text-purple-900">{t("loginTitle")}</h2>
-        <p className="text-purple-500 font-semibold text-sm mt-1 mb-5">
-          {t("loginDesc")}
+        <div className="text-6xl mb-3">🔑</div>
+        <h2 className="text-2xl font-extrabold text-purple-900">تسجيل الدخول الموحد</h2>
+        <p className="text-purple-600 font-semibold text-sm mt-1 mb-5">
+          بوابة خاصة للطلاب، المحاضرين وإدارة المنصة
         </p>
         <div className="space-y-4 text-right">
           <div className="space-y-2">
-            <Label className="text-purple-900 font-bold">{t("username")}</Label>
+            <Label className="text-purple-900 font-bold">رقم الهاتف أو اسم المستخدم</Label>
             <Input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submit()}
               dir="ltr"
-              className="h-12 rounded-2xl border-2 border-purple-200 text-left"
-              placeholder="super | duaa | ridha | ..."
+              className="h-12 rounded-2xl border-2 border-purple-200 text-left font-semibold"
+              placeholder="054995314 | duaa | super"
             />
           </div>
           <div className="space-y-2">
@@ -84,7 +84,7 @@ export default function LoginView({
             />
           </div>
           {error && (
-            <p className="text-red-500 text-sm font-bold text-center">{error}</p>
+            <p className="text-red-500 text-sm font-bold text-center bg-red-50 p-2 rounded-xl border border-red-200">{error}</p>
           )}
           <Button
             onClick={submit}
