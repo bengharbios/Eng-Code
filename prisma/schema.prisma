@@ -9,15 +9,16 @@ datasource db {
 
 // ===== Users: super admin + instructors =====
 model User {
-  id           String   @id @default(cuid())
-  username     String   @unique
-  name         String
-  role         String   @default("instructor") // 'super' | 'instructor'
-  passwordHash String
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  tests        Test[]
+  id              String   @id @default(cuid())
+  username        String   @unique
+  name            String
+  role            String   @default("instructor") // 'super' | 'instructor'
+  passwordHash    String
+  isActive        Boolean  @default(true)
+  permissionsJson String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  tests           Test[]
 }
 
 // ===== Tests (placement system test + instructor-created tests) =====
@@ -89,4 +90,10 @@ model Attempt {
   wantsInterview Boolean  @default(false)
   answersJson    String   @default("")
   createdAt      DateTime @default(now())
+}
+
+model SiteSettings {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

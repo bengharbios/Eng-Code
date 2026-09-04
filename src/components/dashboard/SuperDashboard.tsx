@@ -35,7 +35,7 @@ interface AllTest {
   attemptsCount: number;
 }
 
-type Tab = "overview" | "instructors" | "tests" | "results" | "students" | "editor";
+type Tab = "overview" | "instructors" | "permissions" | "tests" | "results" | "students" | "homepage" | "editor";
 
 export default function SuperDashboard({ userName }: { userName: string }) {
   const { t } = useI18n();
@@ -48,6 +48,22 @@ export default function SuperDashboard({ userName }: { userName: string }) {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Site settings state
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({
+    siteName: "مغامرة المستوى",
+    instituteName: "معهد السلام التثقافي",
+    contactPhone: "042899688",
+    welcomeMessage: "",
+    footerText: "",
+    heroTitle: "",
+    heroSubtitle: "",
+  });
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
+  // Permissions editing
+  const [editingPerms, setEditingPerms] = useState<string | null>(null);
+  const [permsMap, setPermsMap] = useState<Record<string, any>>({});
+
   // instructor form
   const [instName, setInstName] = useState("");
   const [instUsername, setInstUsername] = useState("");
@@ -56,16 +72,30 @@ export default function SuperDashboard({ userName }: { userName: string }) {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [u, tt, a, s] = await Promise.all([
+      const [u, tt, a, s, cfg] = await Promise.all([
         fetch("/api/instructors", { cache: "no-store" }),
         fetch("/api/tests", { cache: "no-store" }),
         fetch("/api/attempts", { cache: "no-store" }),
         fetch("/api/admin/students", { cache: "no-store" }),
+        fetch("/api/admin/settings", { cache: "no-store" }),
       ]);
-      if (u.ok) setUsers(await u.json());
+      if (u.ok) {
+        const uData = await u.json();
+        setUsers(uData);
+        // Build permissions map
+        const pm: Record<string, any> = {};
+        for (const usr of uData) {
+          try { pm[usr.id] = JSON.parse(usr.permissionsJson || "{}"); } catch { pm[usr.id] = {}; }
+        }
+        setPermsMap(pm);
+      }
       if (tt.ok) setTests(await tt.json());
       if (a.ok) setAttempts(await a.json());
       if (s.ok) setStudents(await s.json());
+      if (cfg.ok) {
+        const cfgData = await cfg.json();
+        setSiteSettings(prev => ({ ...prev, ...cfgData }));
+      }
     } finally {
       setLoading(false);
     }
@@ -211,6 +241,43 @@ export default function SuperDashboard({ userName }: { userName: string }) {
     }
   };
 
+  const saveSettings = async () => {
+    setSettingsSaving(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(siteSettings),
+      });
+      if (res.ok) toast({ title: "✅ تم حفظ الإعدادات" });
+      else toast({ title: "حدث خطأ", variant: "destructive" });
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const savePermissions = async (userId: string) => {
+    const perms = permsMap[userId] || {};
+    const res = await fetch(`/api/admin/permissions/${userId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(perms),
+    });
+    if (res.ok) {
+      toast({ title: "✅ تم حفظ الصلاحيات" });
+      setEditingPerms(null);
+    } else {
+      toast({ title: "حدث خطأ", variant: "destructive" });
+    }
+  };
+
+  const togglePerm = (userId: string, key: string, value: boolean) => {
+    setPermsMap(prev => ({
+      ...prev,
+      [userId]: { ...(prev[userId] || {}), [key]: value }
+    }));
+  };
+
   const interviews = attempts.filter((a) => a.wantsInterview).length;
   const uniqueStudents = new Set(attempts.map((a) => a.phone)).size;
 
@@ -229,12 +296,14 @@ export default function SuperDashboard({ userName }: { userName: string }) {
       <div className="flex flex-wrap gap-2 mb-6">
         {(
           [
-            ["overview", `📈 ${t("statsOverview")}`],
-            ["instructors", t("instructors")],
-            ["tests", t("allTests")],
-            ["results", t("allResults")],
-            ["students", `👥 الطلبة`],
-          ] as [Tab, string][]
+          ["overview", `📈 ${t("statsOverview")}`],
+          ["instructors", t("instructors")],
+          ["permissions", `🔐 الصلاحيات`],
+          ["tests", t("allTests")],
+          ["results", t("allResults")],
+          ["students", `👥 الطلبة`],
+          ["homepage", `🖥️ الصفحة الرئيسية`],
+        ] as [Tab, string][]
         ).map(([key, label]) => (
           <button
             key={key}
@@ -548,6 +617,213 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ===== Permissions ===== */}
+          {tab === "permissions" && (
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-extrabold text-purple-900">🔐 صلاحيات المحاضرين</h2>
+              </div>
+
+              <div className="space-y-3">
+                {users.filter(u => u.role !== "super").map((u) => {
+                  const perms = permsMap[u.id] || {};
+                  const isEditing = editingPerms === u.id;
+                  return (
+                    <div key={u.id} className="card-fun p-5">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <span className="font-extrabold text-purple-900 text-base">👩‍🏫 {u.name}</span>
+                          <span className="text-purple-400 text-sm font-semibold mr-2" dir="ltr">@{u.username}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          {isEditing ? (
+                            <>
+                              <button
+                                onClick={() => savePermissions(u.id)}
+                                className="rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs px-3 py-1.5"
+                              >
+                                ✅ حفظ
+                              </button>
+                              <button
+                                onClick={() => setEditingPerms(null)}
+                                className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-xs px-3 py-1.5"
+                              >
+                                إلغاء
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => setEditingPerms(u.id)}
+                              className="rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-xs px-3 py-1.5"
+                            >
+                              ✏️ تعديل الصلاحيات
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {[
+                          { key: "canCreateTests", label: "إنشاء اختبارات جديدة", icon: "➕" },
+                          { key: "canExport", label: "تصدير النتائج Excel", icon: "📊" },
+                          { key: "canViewAllResults", label: "رؤية نتائج الكل", icon: "👁️" },
+                          { key: "canManageStudents", label: "إدارة بيانات الطلبة", icon: "👥" },
+                          { key: "canEditSystemTests", label: "تعديل الاختبارات النظامية", icon: "🔒" },
+                        ].map(({ key, label, icon }) => {
+                          const val = perms[key] !== false; // default true
+                          return (
+                            <label
+                              key={key}
+                              className={`flex items-center gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all ${
+                                val ? "border-emerald-300 bg-emerald-50" : "border-red-200 bg-red-50/50"
+                              } ${!isEditing ? "cursor-default opacity-80" : ""}`}
+                            >
+                              <span className="text-xl">{icon}</span>
+                              <span className="flex-1 font-bold text-sm text-purple-900">{label}</span>
+                              <div
+                                onClick={() => isEditing && togglePerm(u.id, key, !val)}
+                                className={`w-12 h-6 rounded-full relative transition-colors ${
+                                  val ? "bg-emerald-400" : "bg-gray-300"
+                                } ${isEditing ? "cursor-pointer" : "cursor-default"}`}
+                              >
+                                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${
+                                  val ? "right-0.5" : "left-0.5"
+                                }`} />
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+
+                      {isEditing && (
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex gap-2 text-sm text-amber-800 font-semibold">
+                          <span>⚠️</span>
+                          <span>الإعدادات تُطبَّق فوراً عند الحفظ. يحتاج المحاضر لتسجيل خروج وإعادة دخول لرؤية التغييرات.</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {users.filter(u => u.role !== "super").length === 0 && (
+                  <div className="card-fun p-10 text-center text-purple-400 font-bold">
+                    لا يوجد محاضرون حتى الآن — أضف محاضرين أولاً من تبويب "المحاضرين"
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* ===== Homepage Control ===== */}
+          {tab === "homepage" && (
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-5"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-extrabold text-purple-900">🖥️ التحكم بالصفحة الرئيسية</h2>
+                <button
+                  onClick={saveSettings}
+                  disabled={settingsSaving}
+                  className="btn-fun bg-gradient-to-l from-emerald-500 to-teal-500 text-white font-bold text-sm px-6 py-2.5 rounded-2xl"
+                  style={{ ["--btn-fun-shadow" as string]: "#0f766e" }}
+                >
+                  {settingsSaving ? "جاري الحفظ..." : "💾 حفظ التغييرات"}
+                </button>
+              </div>
+
+              {/* Identity */}
+              <div className="card-fun p-5 space-y-4">
+                <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2">🏷️ هوية المنصة</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="font-bold text-purple-800 text-sm">اسم المنصة</Label>
+                    <Input
+                      value={siteSettings.siteName || ""}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, siteName: e.target.value }))}
+                      className="h-11 rounded-2xl border-2 border-purple-200"
+                      placeholder="مغامرة المستوى"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="font-bold text-purple-800 text-sm">اسم المعهد</Label>
+                    <Input
+                      value={siteSettings.instituteName || ""}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, instituteName: e.target.value }))}
+                      className="h-11 rounded-2xl border-2 border-purple-200"
+                      placeholder="معهد السلام التثقافي"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="font-bold text-purple-800 text-sm">رقم التواصل (الفوتر)</Label>
+                    <Input
+                      value={siteSettings.contactPhone || ""}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, contactPhone: e.target.value }))}
+                      className="h-11 rounded-2xl border-2 border-purple-200"
+                      dir="ltr"
+                      placeholder="042899688"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Hero Banner */}
+              <div className="card-fun p-5 space-y-4">
+                <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2">🦸 البانر الرئيسي (اختياري)</h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="font-bold text-purple-800 text-sm">العنوان الرئيسي (فوق الصفحة)</Label>
+                    <Input
+                      value={siteSettings.heroTitle || ""}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, heroTitle: e.target.value }))}
+                      className="h-11 rounded-2xl border-2 border-purple-200"
+                      placeholder="اكتشف مستواك في الإنجليزية..."
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="font-bold text-purple-800 text-sm">العنوان الفرعي</Label>
+                    <Input
+                      value={siteSettings.heroSubtitle || ""}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, heroSubtitle: e.target.value }))}
+                      className="h-11 rounded-2xl border-2 border-purple-200"
+                      placeholder="اختبارات تفاعلية مجانية..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Announcement */}
+              <div className="card-fun p-5 space-y-4">
+                <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2">📢 إعلان / رسالة ترحيبية</h3>
+                <p className="text-sm text-purple-500 font-semibold">تظهر في بداية الصفحة للزوار. اتركها فارغة لإخفائها.</p>
+                <textarea
+                  value={siteSettings.welcomeMessage || ""}
+                  onChange={(e) => setSiteSettings(prev => ({ ...prev, welcomeMessage: e.target.value }))}
+                  className="w-full h-24 rounded-2xl border-2 border-purple-200 p-3 text-sm font-semibold text-purple-900 focus:outline-none focus:border-purple-400 resize-none"
+                  placeholder="🎉 مرحباً بكم! افتتحنا قسم الاختبارات الجديدة لهذا الموسم..."
+                />
+                <div className="space-y-1.5">
+                  <Label className="font-bold text-purple-800 text-sm">نص الفوتر الإضافي</Label>
+                  <Input
+                    value={siteSettings.footerText || ""}
+                    onChange={(e) => setSiteSettings(prev => ({ ...prev, footerText: e.target.value }))}
+                    className="h-11 rounded-2xl border-2 border-purple-200"
+                    placeholder="جميع الحقوق محفوظة © 2025"
+                  />
+                </div>
+              </div>
+
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-sm text-blue-800 font-semibold flex gap-2">
+                <span>💡</span>
+                <span>التغييرات تُطبَّق فوراً على الصفحة الرئيسية بعد الحفظ وتحديث المتصفح.</span>
               </div>
             </motion.div>
           )}

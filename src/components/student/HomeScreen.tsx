@@ -32,22 +32,34 @@ export default function HomeScreen({
   const { t } = useI18n();
   const { user } = useSession();
   const [tests, setTests] = useState<GalleryTest[] | null>(null);
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/tests?public=1", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => {
-        if (alive) setTests(Array.isArray(d) ? d : []);
-      })
-      .catch(() => alive && setTests([]));
-    return () => {
-      alive = false;
-    };
+    Promise.all([
+      fetch("/api/tests?public=1", { cache: "no-store" }).then(r => r.json()),
+      fetch("/api/admin/settings", { cache: "no-store" }).then(r => r.json()).catch(() => ({})),
+    ]).then(([testsData, settings]) => {
+      if (!alive) return;
+      setTests(Array.isArray(testsData) ? testsData : []);
+      setSiteSettings(settings || {});
+    }).catch(() => alive && setTests([]));
+    return () => { alive = false; };
   }, []);
 
   return (
     <div className="flex flex-col items-center px-4 py-8">
+      {/* ===== Welcome Message (if set) ===== */}
+      {siteSettings.welcomeMessage && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-3xl mb-2 p-4 bg-gradient-to-l from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl text-amber-900 font-bold text-sm text-center"
+        >
+          {siteSettings.welcomeMessage}
+        </motion.div>
+      )}
+
       {/* ===== Hero ===== */}
       <motion.div
         initial={{ scale: 0, rotate: -20 }}
@@ -76,7 +88,7 @@ export default function HomeScreen({
         animate={{ opacity: 1, y: 0 }}
         className="text-4xl sm:text-5xl font-extrabold text-center text-purple-900 mt-2"
       >
-        {t("appName")} <span className="text-orange-500">🚀</span>
+        {siteSettings.heroTitle || t("appName")} <span className="text-orange-500">🚀</span>
       </motion.h1>
 
       <motion.p
@@ -85,7 +97,7 @@ export default function HomeScreen({
         transition={{ delay: 0.1 }}
         className="mt-3 text-lg text-purple-600 text-center font-semibold"
       >
-        {t("tagline")}
+        {siteSettings.heroSubtitle || t("tagline")}
       </motion.p>
 
       {/* ===== Accreditation banner ===== */}

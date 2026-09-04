@@ -14,12 +14,13 @@ export async function GET() {
       include: { _count: { select: { tests: true } } },
     });
     return NextResponse.json(
-      users.map((u) => ({
+      users.map((u: any) => ({
         id: u.id,
         username: u.username,
         name: u.name,
         role: u.role,
         isActive: u.isActive,
+        permissionsJson: u.permissionsJson || "",
         testsCount: u._count.tests,
         createdAt: u.createdAt,
       }))

@@ -53,6 +53,20 @@ function AppShell() {
     setView("home");
   }, []);
 
+  const [siteSettings, setSiteSettings] = useState<{
+    siteName?: string;
+    instituteName?: string;
+    contactPhone?: string;
+    footerText?: string;
+  }>({});
+
+  useEffect(() => {
+    fetch("/api/admin/settings", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((cfg) => setSiteSettings(cfg || {}))
+      .catch(() => {});
+  }, []);
+
   // Show login gate if accessing dashboards while logged out
   const effectiveView: View =
     (view === "instructor" || view === "super") && !sessionLoading && !user
@@ -102,11 +116,14 @@ function AppShell() {
       <footer className="mt-auto bg-purple-900 text-purple-200 py-4 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-sm font-semibold">
           <span>
-            🦉 {`مغامرة المستوى`} — منصة الاختبارات التعليمية التفاعلية × معهد السلام
-            التثقافي
+            🦉 {siteSettings.siteName || "مغامرة المستوى"} — منصة الاختبارات التعليمية التفاعلية × {siteSettings.instituteName || "معهد السلام الثقافي"}
           </span>
           <span>
-            للتواصل الأكاديمي: <span dir="ltr">042899688</span> 📞
+            {siteSettings.footerText || (
+              <>
+                للتواصل الأكاديمي: <span dir="ltr">{siteSettings.contactPhone || "042899688"}</span> 📞
+              </>
+            )}
           </span>
         </div>
       </footer>
