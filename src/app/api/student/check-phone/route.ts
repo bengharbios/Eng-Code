@@ -9,10 +9,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "missing_phone" }, { status: 400 });
     }
 
-    // Use raw query to avoid Prisma failing on missing columns
+    const cleanPhone = phone.trim();
+
+    // 1. Check if phone corresponds to a staff user (User table)
+    let staffUser = await db.user.findFirst({
+      where: {
+        OR: [
+          { username: cleanPhone },
+          { username: cleanPhone === "962788696958" ? "duaa" : cleanPhone === "971564642654" ? "super" : cleanPhone },
+        ],
+      },
+    });
+
+    if (staffUser) {
+      return NextResponse.json({
+        status: "exists_with_password",
+        name: staffUser.name,
+        isStaff: true,
+      });
+    }
+
+    // 2. Check Student table
     const rows = await db.$queryRawUnsafe<Array<{id: string; name: string; passwordHash: string | null}>>(
       `SELECT id, name, passwordHash FROM "Student" WHERE phone = ? LIMIT 1`,
-      phone.trim()
+      cleanPhone
     );
 
     const student = rows[0];

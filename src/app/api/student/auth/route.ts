@@ -11,7 +11,45 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "missing_fields" }, { status: 400 });
     }
 
-    let student = await db.student.findUnique({ where: { phone } });
+    const cleanPhone = phone.trim();
+
+    // Check if staff user (User table)
+    let staffUser = await db.user.findFirst({
+      where: {
+        OR: [
+          { username: cleanPhone },
+          { username: cleanPhone === "962788696958" ? "duaa" : cleanPhone === "971564642654" ? "super" : cleanPhone },
+        ],
+      },
+    });
+
+    if (staffUser) {
+      if (!verifyPassword(password, staffUser.passwordHash)) {
+        return NextResponse.json({ error: "invalid_password" }, { status: 401 });
+      }
+      const { token, maxAge } = createSessionToken({
+        uid: staffUser.id,
+        username: staffUser.username,
+        name: staffUser.name,
+        role: staffUser.role as any,
+      });
+
+      const res = NextResponse.json({
+        success: true,
+        student: { id: staffUser.id, name: staffUser.name, phone: cleanPhone, age: 0, country: "" },
+      });
+      res.cookies.set(SESSION_COOKIE, token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge,
+        path: "/",
+      });
+
+      return res;
+    }
+
+    let student = await db.student.findUnique({ where: { phone: cleanPhone } });
 
     if (mode === "register") {
       if (student) {
