@@ -40,8 +40,26 @@ export default function QuizEngine({
   const [timeLeft, setTimeLeft] = useState<number | null>(
     test.timeLimitMin > 0 ? test.timeLimitMin * 60 : null
   );
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const answersRef = useRef<{ questionId: string; selected: number }[]>([]);
   const submittedRef = useRef(false);
+
+  const handleExitClick = () => {
+    if (answersRef.current.length > 0) {
+      setShowExitConfirm(true);
+    } else {
+      onExit();
+    }
+  };
+
+  const confirmExitAndCalculate = () => {
+    setShowExitConfirm(false);
+    if (answersRef.current.length > 0) {
+      onComplete([...answersRef.current]);
+    } else {
+      onExit();
+    }
+  };
 
   const q = test.questions[index];
   const total = test.questions.length;
@@ -275,11 +293,46 @@ export default function QuizEngine({
       </AnimatePresence>
 
       <button
-        onClick={onExit}
+        onClick={handleExitClick}
         className="mt-6 text-purple-300 hover:text-purple-500 font-bold text-sm"
       >
         {t("backToTests")}
       </button>
+
+      {/* ===== Exit confirm modal ===== */}
+      <AnimatePresence>
+        {showExitConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-purple-950/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="card-fun p-6 max-w-md w-full text-center space-y-4 bg-white shadow-2xl"
+            >
+              <div className="text-5xl">⚠️</div>
+              <h3 className="text-2xl font-extrabold text-purple-900">تنبيه الخروج من الاختبار</h3>
+              <p className="text-purple-700 font-semibold text-sm leading-relaxed">
+                أنت تجري الاختبار حالياً! عند الخروج الآن، ستتحصل على نتيجة الأسئلة التي قمت بإجابتها فقط ({answersRef.current.length} من {total}) وسيتم إظهار نتيجتك وحفظها قبل الخروج.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                <Button
+                  onClick={confirmExitAndCalculate}
+                  className="btn-fun flex-1 bg-gradient-to-l from-orange-500 to-amber-400 text-white font-bold py-3.5 text-base"
+                >
+                  {answersRef.current.length > 0 ? "حساب النتيجة والإغلاق" : "الخروج من الاختبار"}
+                </Button>
+                <Button
+                  onClick={() => setShowExitConfirm(false)}
+                  variant="outline"
+                  className="flex-1 rounded-full font-bold border-purple-200 text-purple-700 py-3.5 text-base"
+                >
+                  متابعة الاختبار
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

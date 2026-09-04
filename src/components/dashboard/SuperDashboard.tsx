@@ -171,6 +171,25 @@ export default function SuperDashboard({ userName }: { userName: string }) {
     if (res.ok) loadAll();
   };
 
+  const promoteToInstructor = async (s: StudentItem) => {
+    if (!confirm(`هل أنت متأكد من تحويل الطالب "${s.name}" إلى محاضر؟ سيتمكن من تسجيل الدخول وإنشاء وتحديد اختباراته.`)) return;
+    try {
+      const res = await fetch(`/api/admin/students/${s.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "instructor" }),
+      });
+      if (res.ok) {
+        toast({ title: "🎓 تم الترقية بنجاح", description: `أصبح ${s.name} محاضراً في المنصة الآن.` });
+        loadAll();
+      } else {
+        toast({ title: "تعذر الترقية", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "حدث خطأ بالخادم", variant: "destructive" });
+    }
+  };
+
   const togglePublish = async (test: AllTest) => {
     const res = await fetch(`/api/tests/${test.id}`, {
       method: "PATCH",
@@ -612,7 +631,13 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                               )}
                             </td>
                             <td className="p-3">
-                              <div className="flex gap-1.5">
+                              <div className="flex gap-1.5 flex-wrap">
+                                <button
+                                  onClick={() => promoteToInstructor(s)}
+                                  className="rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs px-2.5 py-1.5 whitespace-nowrap"
+                                >
+                                  🎓 ترقية إلى محاضر
+                                </button>
                                 {s.hasPassword && (
                                   <button
                                     onClick={() => resetStudentPassword(s)}
