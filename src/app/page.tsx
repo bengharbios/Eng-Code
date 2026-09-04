@@ -48,11 +48,13 @@ function AppShell() {
     window.history.replaceState(null, "", `/?t=${slug}`);
     setTakeSlug(slug);
     setView("take");
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, []);
 
   const goHome = useCallback(() => {
     window.history.replaceState(null, "", "/");
     setView("home");
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, []);
 
   const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
@@ -73,6 +75,11 @@ function AppShell() {
     (view === "instructor" || view === "super") && !sessionLoading && !user
       ? "login"
       : view;
+
+  // Auto-reset scroll position to top whenever view changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [effectiveView]);
 
   const views: Record<View, React.ReactNode> = {
     home: (
@@ -141,15 +148,22 @@ function AppShell() {
       <BottomNav
         currentView={effectiveView}
         onNavigate={(tab) => {
-          if (tab === "home") goHome();
-          else if (tab === "take") {
+          if (tab === "home") {
             goHome();
-            // Smooth scroll down to test gallery on mobile
+            window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+          } else if (tab === "take") {
+            goHome();
             setTimeout(() => {
-              window.scrollTo({ top: 380, behavior: "smooth" });
-            }, 100);
-          } else if (tab === "student") setView("student");
-          else if (tab === "login") goDashboard();
+              const el = document.getElementById("tests-gallery");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }, 60);
+          } else if (tab === "student") {
+            setView("student");
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+          } else if (tab === "login") {
+            goDashboard();
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+          }
         }}
         isTakingTest={effectiveView === "take"}
       />

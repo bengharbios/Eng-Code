@@ -198,7 +198,7 @@ export default function HomeScreen({
       )}
 
       {/* ===== Tests gallery ===== */}
-      <div className="mt-10 w-full max-w-4xl">
+      <div className="mt-10 w-full max-w-4xl scroll-mt-20" id="tests-gallery">
         <h2 className="text-2xl font-extrabold text-purple-900 text-center">
           {t("testsGallery")}
         </h2>
