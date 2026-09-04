@@ -82,7 +82,7 @@ function AppShell() {
       />
     ),
     take: takeSlug ? (
-      <TakeTest slug={takeSlug} onBack={goHome} />
+      <TakeTest slug={takeSlug} onBack={goHome} siteSettings={siteSettings} />
     ) : null,
     student: <StudentLookup onBack={goHome} />,
     login: (

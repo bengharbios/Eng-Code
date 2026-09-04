@@ -13,9 +13,11 @@ type Step = "loading" | "error" | "intro" | "quiz" | "result";
 export default function TakeTest({
   slug,
   onBack,
+  siteSettings,
 }: {
   slug: string;
   onBack: () => void;
+  siteSettings?: Record<string, string>;
 }) {
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("loading");
@@ -43,80 +45,77 @@ export default function TakeTest({
 
   const submitAttempt = useCallback(
     async (answers: { questionId: string; selected: number }[]) => {
-      if (!test || !student || submitting) return;
+      if (!test || !student) return;
       setSubmitting(true);
       try {
         const res = await fetch("/api/attempts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            slug: test.slug,
-            name: student.name,
-            phone: student.phone,
-            age: parseInt(student.age, 10),
-            country: student.country,
+            testId: test.id,
+            studentName: student.name,
+            studentPhone: student.phone,
+            studentEmail: student.email || undefined,
             answers,
           }),
         });
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "خطأ أثناء حفظ النتيجة");
+        }
         const data: SubmitResult = await res.json();
         setResult(data);
         setStep("result");
-      } catch {
+      } catch (e: any) {
         toast({
-          title: "تعذّر إرسال الإجابات 😅",
-          description: "تحقق من الاتصال ثم أعد المحاولة",
+          title: "تعذر تقديم الاختبار",
+          description: e.message || "حدث خطأ غير متوقع",
           variant: "destructive",
         });
-        setStep("quiz");
       } finally {
         setSubmitting(false);
       }
     },
-    [test, student, submitting, toast]
+    [test, student, toast]
   );
 
   if (step === "loading") {
     return (
-      <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center">
-        <span className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-400" />
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <span className="animate-spin rounded-full h-14 w-14 border-b-4 border-purple-600" />
+        <p className="text-purple-600 font-bold animate-pulse">جاري تحميل الاختبار...</p>
       </div>
     );
   }
 
   if (step === "error" || !test) {
     return (
-      <div className="min-h-[calc(100vh-8rem)] flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <span className="text-6xl">🔍</span>
-        <h2 className="text-2xl font-extrabold text-purple-900">الاختبار غير متاح</h2>
-        <p className="text-purple-500 font-semibold">
-          قد يكون الرابط خاطئاً أو تم إلغاء نشر الاختبار
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 p-4 text-center">
+        <span className="text-6xl">🙈</span>
+        <h2 className="text-2xl font-extrabold text-purple-900">الاختبار غير موجود أو مغلق</h2>
+        <p className="text-purple-600 font-medium max-w-md">
+          تأكد من رابط الاختبار أو تواصل مع الأستاذ المشرف.
         </p>
         <button
           onClick={onBack}
-          className="btn-fun bg-purple-600 text-white px-8 py-3.5"
-          style={{ ["--btn-fun-shadow" as string]: "#6b21a8" }}
+          className="btn-fun bg-purple-600 text-white font-bold px-6 py-3 rounded-2xl"
         >
-          ← الرئيسية
+          العودة للرئيسية
         </button>
       </div>
     );
   }
 
   return (
-    <motion.div
-      key={step}
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-    >
+    <div className="w-full max-w-4xl mx-auto p-4 sm:p-6">
       {step === "intro" && (
         <TakeTestIntro
           test={test}
-          onBegin={(info) => {
+          onStart={(info) => {
             setStudent(info);
             setStep("quiz");
           }}
+          onBack={onBack}
         />
       )}
       {step === "quiz" && student && (
@@ -136,6 +135,7 @@ export default function TakeTest({
             setStep("intro");
           }}
           onBack={onBack}
+          siteSettings={siteSettings}
         />
       )}
       {step === "result" && !result && (
@@ -143,6 +143,6 @@ export default function TakeTest({
           <span className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-400" />
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

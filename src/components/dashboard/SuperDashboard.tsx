@@ -1021,6 +1021,94 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                 )}
               </div>
 
+              {/* Zoom Interview & Result Page Control */}
+              <div className="card-fun p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-purple-100 pb-2">
+                  <h3 className="font-extrabold text-purple-900 text-base">🎥 التحكم بقسم مقابلة Zoom ونصوص نتيجة الاختبار</h3>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <span className="text-xs font-bold text-purple-700">إظهار قسم Zoom</span>
+                    <input
+                      type="checkbox"
+                      checked={siteSettings.showZoomSection !== "false"}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, showZoomSection: e.target.checked ? "true" : "false" }))}
+                      className="w-4 h-4 rounded text-purple-600"
+                    />
+                  </label>
+                </div>
+
+                {siteSettings.showZoomSection !== "false" && (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <Label className="font-bold text-purple-800 text-sm">عنوان صندوق مقابلة Zoom</Label>
+                      <Input
+                        value={siteSettings.zoomTitle || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, zoomTitle: e.target.value }))}
+                        className="h-11 rounded-2xl border-2 border-purple-200"
+                        placeholder="هل تريد تحديد مستواك بدقة أكبر؟"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="font-bold text-purple-800 text-sm">وصف مقابلة Zoom</Label>
+                      <textarea
+                        value={siteSettings.zoomDesc || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, zoomDesc: e.target.value }))}
+                        className="w-full h-20 rounded-2xl border-2 border-purple-200 p-3 text-sm font-semibold text-purple-900 focus:outline-none focus:border-purple-400 resize-none"
+                        placeholder="يمكنك التقديم على مقابلة شخصية عبر Zoom لتقييم محاورتك وتحديد مستواك بشكل أدق."
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="font-bold text-purple-800 text-sm">عنوان رسالة تأكيد تسجيل المقابلة</Label>
+                      <Input
+                        value={siteSettings.zoomBookedTitle || ""}
+                        onChange={(e) => setSiteSettings(prev => ({ ...prev, zoomBookedTitle: e.target.value }))}
+                        className="h-11 rounded-2xl border-2 border-purple-200"
+                        placeholder="🎊 تم تسجيل رغبتك في المقابلة! الخطوة التالية:"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="font-bold text-purple-800 text-sm">الخطوة الأولى (1️⃣)</Label>
+                        <textarea
+                          value={siteSettings.zoomStep1 || ""}
+                          onChange={(e) => setSiteSettings(prev => ({ ...prev, zoomStep1: e.target.value }))}
+                          className="w-full h-20 rounded-2xl border-2 border-purple-200 p-3 text-sm font-semibold text-purple-900 focus:outline-none focus:border-purple-400 resize-none"
+                          placeholder="1️⃣ اطلب ذلك من الدكتورة دعاء مباشرة في الويبينار الآن."
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="font-bold text-purple-800 text-sm">الخطوة الثانية (2️⃣)</Label>
+                        <textarea
+                          value={siteSettings.zoomStep2 || ""}
+                          onChange={(e) => setSiteSettings(prev => ({ ...prev, zoomStep2: e.target.value }))}
+                          className="w-full h-20 rounded-2xl border-2 border-purple-200 p-3 text-sm font-semibold text-purple-900 focus:outline-none focus:border-purple-400 resize-none"
+                          placeholder="2️⃣ أو تواصل مع الفريق الأكاديمي:"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="font-bold text-purple-800 text-sm">📞 رقم الهاتف للاتصال المباشر</Label>
+                        <Input
+                          value={siteSettings.contactPhone || ""}
+                          onChange={(e) => setSiteSettings(prev => ({ ...prev, contactPhone: e.target.value }))}
+                          className="h-11 rounded-2xl border-2 border-purple-200"
+                          placeholder="042899688"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="font-bold text-purple-800 text-sm">💬 رقم الواتساب الدولي (بدون +)</Label>
+                        <Input
+                          value={siteSettings.whatsappPhone || ""}
+                          onChange={(e) => setSiteSettings(prev => ({ ...prev, whatsappPhone: e.target.value }))}
+                          className="h-11 rounded-2xl border-2 border-purple-200"
+                          placeholder="97142899688"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Footer text */}
               <div className="card-fun p-5 space-y-4">
                 <h3 className="font-extrabold text-purple-900 text-base border-b border-purple-100 pb-2">🦶 أسفل الصفحة (Footer)</h3>

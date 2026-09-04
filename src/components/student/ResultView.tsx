@@ -15,18 +15,34 @@ export default function ResultView({
   studentName,
   onRetake,
   onBack,
+  siteSettings: initialSettings,
 }: {
   result: SubmitResult;
   studentName: string;
   onRetake: () => void;
   onBack: () => void;
+  siteSettings?: Record<string, string>;
 }) {
   const { t } = useI18n();
   const { toast } = useToast();
   const [wantsInterview, setWantsInterview] = useState(false);
   const [savingInterview, setSavingInterview] = useState(false);
+  const [settings, setSettings] = useState<Record<string, string>>(initialSettings || {});
   const level = result.level;
   const isDiagnostic = result.mode === "diagnostic";
+
+  useEffect(() => {
+    if (initialSettings && Object.keys(initialSettings).length > 0) {
+      setSettings(initialSettings);
+    } else {
+      fetch("/api/admin/settings", { cache: "no-store" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && typeof data === "object") setSettings(data);
+        })
+        .catch(() => {});
+    }
+  }, [initialSettings]);
 
   useEffect(() => {
     const mk = (opts: confetti.Options) =>
@@ -91,6 +107,16 @@ export default function ResultView({
       setSavingInterview(false);
     }
   };
+
+  const showZoom = settings.showZoomSection !== "false";
+  const zoomTitle = settings.zoomTitle || t("wantZoom");
+  const zoomDesc = settings.zoomDesc || t("zoomDesc");
+  const zoomBooked = settings.zoomBookedTitle || "🎊 تم تسجيل رغبتك في المقابلة! الخطوة التالية:";
+  const zoomStep1 = settings.zoomStep1 || t("step1");
+  const zoomStep2 = settings.zoomStep2 || t("step2");
+  const phone = settings.contactPhone || ACADEMIC_PHONE;
+  const rawWhatsapp = settings.whatsappPhone || ACADEMIC_PHONE_INTL;
+  const whatsappClean = rawWhatsapp.replace(/[^0-9]/g, "");
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center px-4 py-8">
@@ -178,7 +204,7 @@ export default function ResultView({
                 {result.percentage}%
               </span>
               <span className="block text-sm text-purple-500 font-semibold">
-                {t("mastery")}
+                {t("accuracy")}
               </span>
             </div>
           </div>
@@ -209,65 +235,67 @@ export default function ResultView({
         )}
 
         {/* ===== Zoom interview ===== */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-          className="card-fun mt-5 p-6 sm:p-7"
-        >
-          <div className="flex items-start gap-3">
-            <span className="text-4xl">🎥</span>
-            <div className="flex-1">
-              <h3 className="font-extrabold text-purple-900 text-xl">{t("wantZoom")}</h3>
-              <p className="text-purple-600 font-medium mt-1 leading-relaxed">
-                {t("zoomDesc")}
-              </p>
+        {showZoom && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1 }}
+            className="card-fun mt-5 p-6 sm:p-7"
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-4xl">🎥</span>
+              <div className="flex-1">
+                <h3 className="font-extrabold text-purple-900 text-xl">{zoomTitle}</h3>
+                <p className="text-purple-600 font-medium mt-1 leading-relaxed whitespace-pre-line">
+                  {zoomDesc}
+                </p>
 
-              {!wantsInterview ? (
-                <Button
-                  onClick={requestInterview}
-                  disabled={savingInterview}
-                  className="btn-fun mt-4 bg-gradient-to-l from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-lg px-8 py-5 h-auto"
-                  style={{ ["--btn-fun-shadow" as string]: "#0f766e" }}
-                >
-                  {savingInterview ? t("booking") : t("bookZoom")}
-                </Button>
-              ) : (
-                <div className="mt-4 space-y-3">
-                  <div className="bg-teal-50 border-2 border-teal-300 text-teal-800 rounded-2xl px-4 py-3 font-bold">
-                    {t("zoomBooked")}
+                {!wantsInterview ? (
+                  <Button
+                    onClick={requestInterview}
+                    disabled={savingInterview}
+                    className="btn-fun mt-4 bg-gradient-to-l from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-lg px-8 py-5 h-auto"
+                    style={{ ["--btn-fun-shadow" as string]: "#0f766e" }}
+                  >
+                    {savingInterview ? t("booking") : t("bookZoom")}
+                  </Button>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    <div className="bg-teal-50 border-2 border-teal-300 text-teal-800 rounded-2xl px-4 py-3 font-bold whitespace-pre-line">
+                      {zoomBooked}
+                    </div>
+                    <ul className="space-y-2 text-purple-800 font-semibold">
+                      <li className="flex items-start gap-2 whitespace-pre-line">
+                        {zoomStep1.startsWith("1️⃣") ? zoomStep1 : `1️⃣ ${zoomStep1}`}
+                      </li>
+                      <li className="flex items-start gap-2 whitespace-pre-line">
+                        {zoomStep2.startsWith("2️⃣") ? zoomStep2 : `2️⃣ ${zoomStep2}`}
+                      </li>
+                    </ul>
+                    <div className="flex flex-wrap gap-3 mt-3">
+                      <a
+                        href={`tel:${phone}`}
+                        className="btn-fun inline-flex items-center gap-2 bg-gradient-to-l from-orange-500 to-amber-400 text-white text-lg px-6 py-3.5"
+                        style={{ ["--btn-fun-shadow" as string]: "#c2410c" }}
+                      >
+                        📞 <span dir="ltr">{phone}</span>
+                      </a>
+                      <a
+                        href={`https://wa.me/${whatsappClean}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-fun inline-flex items-center gap-2 bg-gradient-to-l from-green-500 to-emerald-400 text-white text-lg px-6 py-3.5"
+                        style={{ ["--btn-fun-shadow" as string]: "#15803d" }}
+                      >
+                        💬 {t("whatsapp")}
+                      </a>
+                    </div>
                   </div>
-                  <ul className="space-y-2 text-purple-800 font-semibold">
-                    <li className="flex items-start gap-2">
-                      <span>1️⃣</span> {t("step1")}
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span>2️⃣</span> {t("step2")}
-                    </li>
-                  </ul>
-                  <div className="flex flex-wrap gap-3">
-                    <a
-                      href={`tel:${ACADEMIC_PHONE}`}
-                      className="btn-fun inline-flex items-center gap-2 bg-gradient-to-l from-orange-500 to-amber-400 text-white text-lg px-6 py-3.5"
-                      style={{ ["--btn-fun-shadow" as string]: "#c2410c" }}
-                    >
-                      📞 <span dir="ltr">{ACADEMIC_PHONE}</span>
-                    </a>
-                    <a
-                      href={`https://wa.me/${ACADEMIC_PHONE_INTL}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-fun inline-flex items-center gap-2 bg-gradient-to-l from-green-500 to-emerald-400 text-white text-lg px-6 py-3.5"
-                      style={{ ["--btn-fun-shadow" as string]: "#15803d" }}
-                    >
-                      💬 {t("whatsapp")}
-                    </a>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
 
         <div className="flex flex-wrap justify-center gap-3 mt-6">
           <Button
