@@ -25,27 +25,50 @@ interface GalleryTest {
 export default function HomeScreen({
   onTake,
   onLogin,
+  siteSettings: propsSiteSettings,
+  settingsLoaded: propsSettingsLoaded,
 }: {
   onTake: (slug: string) => void;
   onLogin: () => void;
+  siteSettings?: Record<string, string>;
+  settingsLoaded?: boolean;
 }) {
   const { t } = useI18n();
   const { user } = useSession();
   const [tests, setTests] = useState<GalleryTest[] | null>(null);
-  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+  const [internalSettings, setInternalSettings] = useState<Record<string, string> | null>(null);
+
+  const siteSettings = propsSiteSettings || internalSettings || {};
+  const isLoaded = propsSettingsLoaded !== undefined ? propsSettingsLoaded : internalSettings !== null;
 
   useEffect(() => {
     let alive = true;
-    Promise.all([
-      fetch("/api/tests?public=1", { cache: "no-store" }).then(r => r.json()),
-      fetch("/api/admin/settings", { cache: "no-store" }).then(r => r.json()).catch(() => ({})),
-    ]).then(([testsData, settings]) => {
-      if (!alive) return;
-      setTests(Array.isArray(testsData) ? testsData : []);
-      setSiteSettings(settings || {});
-    }).catch(() => alive && setTests([]));
-    return () => { alive = false; };
-  }, []);
+    fetch("/api/tests?public=1", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((testsData) => {
+        if (alive) setTests(Array.isArray(testsData) ? testsData : []);
+      })
+      .catch(() => alive && setTests([]));
+
+    if (propsSiteSettings === undefined) {
+      fetch("/api/admin/settings", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((cfg) => alive && setInternalSettings(cfg || {}))
+        .catch(() => alive && setInternalSettings({}));
+    }
+    return () => {
+      alive = false;
+    };
+  }, [propsSiteSettings]);
+
+  if (!isLoaded || tests === null) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 py-16">
+        <span className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-500 mb-4" />
+        <p className="text-purple-600 font-bold text-sm">جاري تحميل المنصة والمحتوى...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center px-4 py-8">

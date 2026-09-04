@@ -53,18 +53,17 @@ function AppShell() {
     setView("home");
   }, []);
 
-  const [siteSettings, setSiteSettings] = useState<{
-    siteName?: string;
-    instituteName?: string;
-    contactPhone?: string;
-    footerText?: string;
-  }>({});
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/settings", { cache: "no-store" })
       .then((r) => r.json())
-      .then((cfg) => setSiteSettings(cfg || {}))
-      .catch(() => {});
+      .then((cfg) => {
+        setSiteSettings(cfg || {});
+        setSettingsLoaded(true);
+      })
+      .catch(() => setSettingsLoaded(true));
   }, []);
 
   // Show login gate if accessing dashboards while logged out
@@ -74,7 +73,14 @@ function AppShell() {
       : view;
 
   const views: Record<View, React.ReactNode> = {
-    home: <HomeScreen onTake={openTake} onLogin={() => setView("login")} />,
+    home: (
+      <HomeScreen
+        onTake={openTake}
+        onLogin={() => setView("login")}
+        siteSettings={siteSettings}
+        settingsLoaded={settingsLoaded}
+      />
+    ),
     take: takeSlug ? (
       <TakeTest slug={takeSlug} onBack={goHome} />
     ) : null,
