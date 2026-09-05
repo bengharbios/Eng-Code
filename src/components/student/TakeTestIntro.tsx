@@ -278,14 +278,24 @@ export default function TakeTestIntro({
                 <div className="text-5xl">🛑</div>
                 <h3 className="text-2xl font-black text-red-900">غير مسموح بإعادة هذا الاختبار</h3>
                 <p className="text-red-700 font-semibold text-sm leading-relaxed max-w-md mx-auto">
-                  عذراً، لقد قمت بإجراء هذا الاختبار مسبقاً، وقام الإدارة بإلغاء خاصية إعانة الاختبار لمنع التكرار.
+                  عذراً، لقد قمت بإجراء هذا الاختبار مسبقاً، وقامت الإدارة بإلغاء خاصية إعادة الاختبار لمنع التكرار.
                 </p>
-                <div className="flex justify-center gap-3 pt-2">
+                <div className="flex flex-wrap justify-center gap-3 pt-2">
                   <a
                     href={`/lookup?phone=${encodeURIComponent(user?.username || phone || "")}`}
-                    className="btn-fun inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-6 py-3 text-base"
+                    className="btn-fun inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-5 py-3 text-base"
                   >
-                    📜 استعراض نتيجتك وشهادتك السابقة
+                    📊 عرض النتيجة السابقة
+                  </a>
+                  <a
+                    href={`https://wa.me/97142899688?text=${encodeURIComponent(
+                      `مرحباً معهد السلام، أود طلب إصدار شهادتي الرسمية لاختبار ${test.title} (الرقم المسجل: ${user?.username || phone || ""})`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-fun inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-5 py-3 text-base"
+                  >
+                    💬 طلب الشهادة عبر الواتساب
                   </a>
                 </div>
               </div>
@@ -357,14 +367,24 @@ export default function TakeTestIntro({
                   <div className="text-4xl">🛑</div>
                   <h3 className="text-xl font-black text-red-900">غير مسموح بإعادة هذا الاختبار</h3>
                   <p className="text-red-700 font-semibold text-xs leading-relaxed max-w-md mx-auto">
-                    عذراً، لقد قمت بإجراء هذا الاختبار مسبقاً، وقامت الإدارة بإلغاء خاصية إعانة الاختبار لمنع التكرار.
+                    عذراً، لقد قمت بإجراء هذا الاختبار مسبقاً، وقامت الإدارة بإلغاء خاصية إعادة الاختبار لمنع التكرار.
                   </p>
-                  <div className="flex justify-center gap-3 pt-1">
+                  <div className="flex flex-wrap justify-center gap-2.5 pt-1">
                     <a
                       href={`/lookup?phone=${encodeURIComponent(user?.username || phone || "")}`}
-                      className="btn-fun inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-5 py-2.5 text-sm"
+                      className="btn-fun inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2.5 text-sm"
                     >
-                      📜 استعراض نتيجتك وشهادتك السابقة
+                      📊 عرض النتيجة السابقة
+                    </a>
+                    <a
+                      href={`https://wa.me/97142899688?text=${encodeURIComponent(
+                        `مرحباً معهد السلام، أود طلب إصدار شهادتي الرسمية لاختبار ${test.title} (الرقم المسجل: ${user?.username || phone || ""})`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-fun inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-4 py-2.5 text-sm"
+                    >
+                      💬 طلب الشهادة عبر الواتساب
                     </a>
                   </div>
                 </div>

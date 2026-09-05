@@ -138,7 +138,7 @@ export default function ResultView({
   const whatsappClean = rawWhatsapp.replace(/[^0-9]/g, "");
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center px-4 py-8">
+    <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center px-2.5 sm:px-4 py-4 sm:py-8 w-full overflow-x-hidden">
       <motion.div
         initial={{ opacity: 0, scale: 0.85 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -149,7 +149,7 @@ export default function ResultView({
           <motion.div
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 2.2, repeat: Infinity }}
-            className="relative w-40 h-40 mx-auto"
+            className="relative w-28 h-28 sm:w-40 sm:h-40 mx-auto"
           >
             <Image
               src="/images/mascot-celebrate.png"
@@ -160,28 +160,28 @@ export default function ResultView({
               className="object-contain"
             />
           </motion.div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-purple-900 mt-2">
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-purple-900 mt-2 px-2">
             {t("congrats")} {studentName}! 🎉
           </h1>
-          <p className="text-purple-600 font-semibold mt-1">{t("finished")}</p>
+          <p className="text-purple-600 font-semibold mt-1 text-sm sm:text-base">{t("finished")}</p>
         </div>
 
         {/* ===== Level card ===== */}
         <div
-          className="card-fun p-6 sm:p-8 text-center"
+          className="card-fun p-4 sm:p-8 text-center max-w-full overflow-hidden break-words"
           style={{ borderColor: level.color, background: level.color + "14" }}
         >
           <motion.div
             initial={{ scale: 0, rotate: -30 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-            className="text-7xl mb-2"
+            className="text-5xl sm:text-7xl mb-2"
           >
             {level.emoji}
           </motion.div>
 
           <div
-            className="inline-flex items-center gap-2 text-white font-extrabold text-2xl rounded-full px-8 py-2 shadow-lg"
+            className="inline-flex items-center justify-center gap-2 text-white font-extrabold text-base sm:text-xl rounded-full px-4 sm:px-8 py-2 shadow-lg max-w-full text-center leading-snug"
             style={{ background: level.color }}
           >
             {isDiagnostic ? "🧭 " + t("yourLevel") : t("yourLevel") + ": " + level.code}
@@ -430,7 +430,7 @@ export default function ResultView({
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3 mt-4">
+                <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 mt-4 w-full">
                   {!test?.disableCertPreview && (
                     <Button
                       type="button"
@@ -441,7 +441,7 @@ export default function ResultView({
                         }
                         setShowCertPreview(true);
                       }}
-                      className="btn-fun bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-base px-6 py-4 h-auto shadow-md"
+                      className="btn-fun bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-sm sm:text-base px-5 py-3.5 h-auto shadow-md w-full sm:w-auto justify-center"
                     >
                       👁️ معاينة وطباعة الشهادة
                     </Button>
@@ -486,7 +486,7 @@ export default function ResultView({
                       }
                     }}
                     disabled={sendingCertWhatsapp}
-                    className="btn-fun bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-base px-6 py-4 h-auto shadow-md"
+                    className="btn-fun bg-gradient-to-l from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-sm sm:text-base px-5 py-3.5 h-auto shadow-md w-full sm:w-auto justify-center"
                   >
                     {sendingCertWhatsapp ? "جاري الإرسال..." : "📲 طلب الشهادة عبر الواتساب"}
                   </Button>

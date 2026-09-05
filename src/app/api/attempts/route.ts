@@ -258,16 +258,18 @@ export async function GET(req: NextRequest) {
     const session = await getSession();
     if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
+    const isSuperAdmin = session.role === "super" || session.username?.toLowerCase() === "super";
+
     const where: Record<string, unknown> = {};
-    if (testId) {
-      if (session.role !== "super") {
+    if (testId && testId !== "all") {
+      if (!isSuperAdmin) {
         const test = await db.test.findUnique({ where: { id: testId } });
         if (!test || test.ownerId !== session.uid) {
           return NextResponse.json({ error: "forbidden" }, { status: 403 });
         }
       }
       where.testId = testId;
-    } else if (session.role !== "super") {
+    } else if (!isSuperAdmin) {
       where.test = { ownerId: session.uid };
     }
 
@@ -275,21 +277,8 @@ export async function GET(req: NextRequest) {
       where,
       orderBy: { createdAt: "desc" },
       include: {
-        student: { select: { name: true, phone: true, age: true, country: true } },
-        test: {
-          select: {
-            title: true,
-            emoji: true,
-            kind: true,
-            certTitleAr: true,
-            certTitleEn: true,
-            certificateType: true,
-            courseHours: true,
-            showSponsorOnCert: true,
-            institutionName: true,
-            institutionLogo: true,
-          },
-        },
+        student: true,
+        test: true,
       },
     });
 
