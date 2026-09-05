@@ -21,17 +21,27 @@ type View = "home" | "tests" | "take" | "student" | "login" | "instructor" | "su
 function AppShell() {
   const { user, loading: sessionLoading, logout } = useSession();
   const [view, setView] = useState<View>("home");
+  const [initialPhone, setInitialPhone] = useState<string | null>(null);
   const [takeSlug, setTakeSlug] = useState<string | null>(null);
 
-  // Deep link: /?t=slug (works on any domain incl. Vercel)
+  // Deep link: /?t=slug or /?phone=... or /?view=student
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
     const t = sp.get("t");
+    const viewParam = sp.get("view");
+    const phoneParam = sp.get("phone");
+
     if (t) {
       // async to avoid synchronous setState in effect (hydration-safe)
       const id = requestAnimationFrame(() => {
         setTakeSlug(t);
         setView("take");
+      });
+      return () => cancelAnimationFrame(id);
+    } else if (viewParam === "student" || phoneParam) {
+      if (phoneParam) setInitialPhone(phoneParam);
+      const id = requestAnimationFrame(() => {
+        setView("student");
       });
       return () => cancelAnimationFrame(id);
     }
@@ -105,7 +115,7 @@ function AppShell() {
     take: takeSlug ? (
       <TakeTest slug={takeSlug} onBack={goHome} siteSettings={siteSettings} />
     ) : null,
-    student: <StudentLookup onBack={goHome} />,
+    student: <StudentLookup onBack={goHome} initialPhone={initialPhone || undefined} />,
     login: (
       <LoginView
         onBack={goHome}

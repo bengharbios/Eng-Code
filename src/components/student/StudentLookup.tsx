@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,17 +10,42 @@ import { playClick } from "@/lib/sounds";
 import { useSession } from "@/components/SessionProvider";
 import StudentPortal from "./StudentPortal";
 
-export default function StudentLookup({ onBack }: { onBack: () => void }) {
+export default function StudentLookup({ onBack, initialPhone }: { onBack: () => void; initialPhone?: string }) {
   const { t } = useI18n();
   const { user, refresh } = useSession();
 
   const [phoneState, setPhoneState] = useState<"init" | "not_found" | "exists_with_password" | "exists_no_password">("init");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(initialPhone || "");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (initialPhone && initialPhone.trim()) {
+      const trimmed = initialPhone.trim();
+      setPhone(trimmed);
+      const digits = trimmed.replace(/\D/g, "");
+      if (digits && digits.length >= 7) {
+        setLoading(true);
+        fetch("/api/student/check-phone", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: trimmed }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.status) {
+              setPhoneState(data.status);
+              if (data.name) setName(data.name);
+            }
+          })
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      }
+    }
+  }, [initialPhone]);
 
   if (user && user.role === "student") {
     return <StudentPortal onBack={onBack} />;

@@ -343,8 +343,8 @@ export default function CertificateView({
               ) : (
                 /* Free Certificate (Clean Box) */
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-1">
-                  <div className="w-10 h-10 border border-dashed border-slate-300 rounded flex items-center justify-center text-slate-300 text-[9px]">
-                    تصديق KHDA
+                  <div className="w-10 h-10 border border-amber-600/40 rounded flex items-center justify-center text-amber-800 text-[10px] font-black">
+                    ✓ معتمدة
                   </div>
                   <p className="text-[8px] text-slate-400 mt-0.5">شهادة حضور صادرة مجاناً من الفرع</p>
                 </div>

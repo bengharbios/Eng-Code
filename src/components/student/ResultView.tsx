@@ -415,7 +415,7 @@ export default function ResultView({
                     </div>
                     <div>
                       <label className="block text-xs font-extrabold text-amber-950 mb-1">
-                        Full Name in English (الاسم بالإنجليزية)
+                        Full Name in English (الاسم بالإنجليزية) *
                       </label>
                       <input
                         type="text"
@@ -435,8 +435,8 @@ export default function ResultView({
                     <Button
                       type="button"
                       onClick={() => {
-                        if (!certNameAr.trim()) {
-                          toast({ title: "يرجى كتابة الاسم بالعربية أولاً لمعاينة الشهادة", variant: "destructive" });
+                        if (!certNameAr.trim() || !certNameEn.trim()) {
+                          toast({ title: "يرجى كتابة الاسم الكامل باللغتين العربية والإنجليزي (كلاهما حقل إجباري)", variant: "destructive" });
                           return;
                         }
                         setShowCertPreview(true);
@@ -450,8 +450,8 @@ export default function ResultView({
                   <Button
                     type="button"
                     onClick={async () => {
-                      if (!certNameAr.trim()) {
-                        toast({ title: "يرجى كتابة الاسم باللغة العربية أولاً", variant: "destructive" });
+                      if (!certNameAr.trim() || !certNameEn.trim()) {
+                        toast({ title: "يرجى كتابة الاسم الكامل باللغتين العربية والإنجليزي (كلاهما حقل إجباري)", variant: "destructive" });
                         return;
                       }
                       setSendingCertWhatsapp(true);
@@ -476,7 +476,7 @@ export default function ResultView({
 
                         const certTypeName = isKhdaCert ? `مصدقة من هيئة المعرفة والتنمية البشرية KHDA (${test?.khdaFee || 140} درهم - 2-5 أيام عمل)` : "شهادة مجانية معتمدة من معهد السلام";
                         const displayPhone = (studentPhone && !["duaa", "super", "admin"].includes(studentPhone.trim().toLowerCase()) && studentPhone.length >= 6) ? studentPhone : (phone || ACADEMIC_PHONE);
-                        const msgText = `مرحباً معهد السلام، أود طلب إصدار شهادتي الرسمية:\n\n- الاسم بالعربية: ${certNameAr.trim()}\n- Name in English: ${certNameEn.trim() || "غير محدد"}\n- الاختبار: ${testTitle}\n- المستوى المطلوب: ${level.name}\n- نوع الشهادة: ${certTypeName}\n- رقم التواصل: ${displayPhone}`;
+                        const msgText = `مرحباً معهد السلام، أود طلب إصدار شهادتي الرسمية:\n\n- الاسم بالعربية: ${certNameAr.trim()}\n- Name in English: ${certNameEn.trim()}\n- الاختبار: ${testTitle}\n- المستوى المطلوب: ${level.name}\n- نوع الشهادة: ${certTypeName}\n- رقم التواصل: ${displayPhone}`;
                         const url = `https://wa.me/${whatsappClean}?text=${encodeURIComponent(msgText)}`;
                         window.open(url, "_blank");
                       } catch {
