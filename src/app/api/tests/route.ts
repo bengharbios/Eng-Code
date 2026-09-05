@@ -9,7 +9,7 @@ import { ensureSeed } from "@/lib/seed";
 // GET /api/tests — session: own (instructor) / all (super) | ?public=1: published gallery
 export async function GET(req: NextRequest) {
   try {
-    await ensureSeed();
+    try { await ensureSeed(); } catch (e) {}
     const url = new URL(req.url);
     if (url.searchParams.get("public") === "1") {
       const tests = await db.test.findMany({
