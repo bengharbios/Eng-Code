@@ -475,7 +475,8 @@ export default function ResultView({
                         toast({ title: "✅ تم تسجيل طلب الشهادة وتأكيد الاسم بنجاح!" });
 
                         const certTypeName = isKhdaCert ? `مصدقة من هيئة المعرفة والتنمية البشرية KHDA (${test?.khdaFee || 140} درهم - 2-5 أيام عمل)` : "شهادة مجانية معتمدة من معهد السلام";
-                        const msgText = `مرحباً معهد السلام، أود طلب إصدار شهادتي الرسمية:\n\n👤 الاسم بالعربية: ${certNameAr.trim()}\n🔤 Name in English: ${certNameEn.trim() || "غير محدد"}\n📝 الاختبار: ${testTitle}\n📊 المستوى المطلوب: ${level.name}\n📜 نوع الشهادة: ${certTypeName}\n📱 رقم التواصل: ${studentPhone || ""}`;
+                        const displayPhone = (studentPhone && !["duaa", "super", "admin"].includes(studentPhone.trim().toLowerCase()) && studentPhone.length >= 6) ? studentPhone : (phone || ACADEMIC_PHONE);
+                        const msgText = `مرحباً معهد السلام، أود طلب إصدار شهادتي الرسمية:\n\n- الاسم بالعربية: ${certNameAr.trim()}\n- Name in English: ${certNameEn.trim() || "غير محدد"}\n- الاختبار: ${testTitle}\n- المستوى المطلوب: ${level.name}\n- نوع الشهادة: ${certTypeName}\n- رقم التواصل: ${displayPhone}`;
                         const url = `https://wa.me/${whatsappClean}?text=${encodeURIComponent(msgText)}`;
                         window.open(url, "_blank");
                       } catch {
@@ -517,6 +518,7 @@ export default function ResultView({
               institutionLogo: test?.logoUrl,
               certTitleAr: test?.certTitleAr,
               certTitleEn: test?.certTitleEn,
+              showSponsorOnCert: test?.showSponsorOnCert !== false,
               isKhda: isKhdaCert,
               khdaFee: test?.khdaFee || 140,
               certId: result.attemptId.slice(-8).toUpperCase(),

@@ -35,6 +35,7 @@ export interface PublicTest {
   certTitleEn?: string;
   courseHours?: number;
   disableCertPreview?: boolean;
+  showSponsorOnCert?: boolean;
 }
 
 export interface ResultLevelInfo {

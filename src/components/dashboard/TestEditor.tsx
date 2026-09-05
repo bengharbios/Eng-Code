@@ -99,6 +99,7 @@ export default function TestEditor({
   const [certTitleEn, setCertTitleEn] = useState("");
   const [courseHours, setCourseHours] = useState<number>(30);
   const [disableCertPreview, setDisableCertPreview] = useState<boolean>(false);
+  const [showSponsorOnCert, setShowSponsorOnCert] = useState<boolean>(true);
   const [questions, setQuestions] = useState<QItem[]>([emptyQuestion("points")]);
   const [outcomes, setOutcomes] = useState<OutcomesDoc>({
     buckets: [],
@@ -150,6 +151,7 @@ export default function TestEditor({
         setCertTitleEn(d.certTitleEn || "");
         setCourseHours(d.courseHours ?? 30);
         setDisableCertPreview(Boolean(d.disableCertPreview));
+        setShowSponsorOnCert(d.showSponsorOnCert !== false);
         setQuestions(
           (d.questions || []).map(
             (q: {
@@ -274,6 +276,7 @@ export default function TestEditor({
         certTitleEn,
         courseHours,
         disableCertPreview,
+        showSponsorOnCert,
         ownerId: selectedOwnerId || undefined,
         outcomes: kind === "diagnostic" ? outcomes : null,
         questions: questions.map((q) => ({
@@ -595,6 +598,20 @@ export default function TestEditor({
                       </p>
                     </div>
                     <Switch checked={disableCertPreview} onCheckedChange={setDisableCertPreview} />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2 bg-amber-100/40 p-3 rounded-xl border border-amber-200">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <Label className="font-extrabold text-amber-950 text-xs flex items-center gap-1.5">
+                        <span>🏛️</span> إظهار شارة المؤسسة والبرعاية في أسفل الشهادة (برعاية: ...)
+                      </Label>
+                      <p className="text-[11px] text-amber-800 font-medium">
+                        يمكنك إظهار أو إلغاء شارة الرعاية في أسفل الشهادة في أي وقت.
+                      </p>
+                    </div>
+                    <Switch checked={showSponsorOnCert} onCheckedChange={setShowSponsorOnCert} />
                   </div>
                 </div>
 

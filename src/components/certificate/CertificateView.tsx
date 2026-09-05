@@ -16,6 +16,7 @@ export interface CertificateData {
   institutionLogo?: string;
   certTitleAr?: string;
   certTitleEn?: string;
+  showSponsorOnCert?: boolean;
   isKhda: boolean;
   khdaFee?: number;
   certId?: string;
@@ -175,11 +176,6 @@ export default function CertificateView({
       >
         {/* Inner Decorative Double Border */}
         <div className="border-2 border-amber-600/60 p-4 sm:p-6 relative flex flex-col justify-between min-h-[540px]">
-          {/* Corner Ornaments */}
-          <div className="absolute top-1.5 left-1.5 text-amber-600 text-lg font-bold">⚜️</div>
-          <div className="absolute top-1.5 right-1.5 text-amber-600 text-lg font-bold">⚜️</div>
-          <div className="absolute bottom-1.5 left-1.5 text-amber-600 text-lg font-bold">⚜️</div>
-          <div className="absolute bottom-1.5 right-1.5 text-amber-600 text-lg font-bold">⚜️</div>
 
           {/* Top Header Row (Bilingual Header with Official Al Salam Logo on Both Sides, Middle EMPTY) */}
           <div className="flex items-center justify-between border-b border-amber-900/20 pb-3">
@@ -219,9 +215,6 @@ export default function CertificateView({
 
           {/* Certificate Main Body Section */}
           <div className="text-center my-3 sm:my-4 space-y-2.5">
-            {/* Ornament Icon */}
-            <div className="text-amber-600 text-xl leading-none">⚜️</div>
-
             {/* Title (Customizable AR + EN) */}
             <div>
               <h1 className="text-2xl sm:text-3xl font-black text-amber-950 tracking-wide">
@@ -279,8 +272,8 @@ export default function CertificateView({
             </div>
           </div>
 
-          {/* Sponsor Badge Section (Bottom Center) */}
-          {data.institutionName && (
+          {/* Sponsor Badge Section (Bottom Center - Rendered only if showSponsorOnCert is true) */}
+          {data.showSponsorOnCert !== false && data.institutionName && (
             <div className="my-1.5 text-center bg-amber-50/90 border border-amber-300/80 rounded-lg px-4 py-1 max-w-sm mx-auto shadow-sm">
               <div className="flex items-center justify-center gap-2">
                 {data.institutionLogo && (

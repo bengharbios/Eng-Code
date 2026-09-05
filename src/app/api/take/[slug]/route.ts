@@ -43,6 +43,7 @@ export async function GET(
       certTitleEn: test.certTitleEn || "",
       courseHours: test.courseHours ?? 30,
       disableCertPreview: Boolean(test.disableCertPreview),
+      showSponsorOnCert: test.showSponsorOnCert !== false,
       questions: test.questions.map((q) => ({
         id: q.id,
         order: q.order,

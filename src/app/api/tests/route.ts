@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
           certTitleEn: t.certTitleEn || "",
           courseHours: t.courseHours ?? 30,
           disableCertPreview: Boolean(t.disableCertPreview),
+          showSponsorOnCert: t.showSponsorOnCert !== false,
           questionCount: t._count?.questions || 0,
         }))
       );
@@ -79,6 +80,7 @@ export async function GET(req: NextRequest) {
         certTitleEn: t.certTitleEn || "",
         courseHours: t.courseHours ?? 30,
         disableCertPreview: Boolean(t.disableCertPreview),
+        showSponsorOnCert: t.showSponsorOnCert !== false,
         ownerName: t.owner?.name || "المعهد",
         questionCount: t._count?.questions || 0,
         attemptsCount: t._count?.attempts || 0,
@@ -120,6 +122,7 @@ export async function POST(req: NextRequest) {
       certTitleEn = "",
       courseHours = 30,
       disableCertPreview = false,
+      showSponsorOnCert = true,
       outcomes = null,
       questions = [],
     } = body ?? {};
@@ -163,6 +166,7 @@ export async function POST(req: NextRequest) {
         certTitleEn: String(certTitleEn || "").slice(0, 200),
         courseHours: Math.max(1, Number(courseHours) || 30),
         disableCertPreview: Boolean(disableCertPreview),
+        showSponsorOnCert: Boolean(showSponsorOnCert),
         outcomesJson: outcomes ? JSON.stringify(outcomes) : "",
         ownerId: (body.ownerId && session.role === "super") ? String(body.ownerId) : session.uid,
         questions: {

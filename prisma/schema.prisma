@@ -48,6 +48,7 @@ model Test {
   certTitleEn          String?  @default("")
   courseHours          Int      @default(30)
   disableCertPreview   Boolean  @default(false)
+  showSponsorOnCert    Boolean  @default(true)
   outcomesJson         String   @default("") // diagnostic outcomes {buckets:[{key,emoji,title,description,program,color}],tie:{...}}
   ownerId       String
   owner         User     @relation("UserTests", fields: [ownerId], references: [id])

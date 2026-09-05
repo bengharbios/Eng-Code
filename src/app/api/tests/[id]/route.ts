@@ -60,6 +60,7 @@ export async function GET(
       certTitleEn: test.certTitleEn || "",
       courseHours: test.courseHours ?? 30,
       disableCertPreview: Boolean(test.disableCertPreview),
+      showSponsorOnCert: test.showSponsorOnCert !== false,
       outcomes: test.outcomesJson ? JSON.parse(test.outcomesJson) : null,
       ownerId: test.ownerId,
       ownerName: test.owner.name,
@@ -127,6 +128,7 @@ export async function PATCH(
     if (body.certTitleEn !== undefined) data.certTitleEn = String(body.certTitleEn || "").slice(0, 200);
     if (body.courseHours !== undefined) data.courseHours = Math.max(1, Number(body.courseHours) || 30);
     if (body.disableCertPreview !== undefined) data.disableCertPreview = Boolean(body.disableCertPreview);
+    if (body.showSponsorOnCert !== undefined) data.showSponsorOnCert = Boolean(body.showSponsorOnCert);
     if (body.outcomes !== undefined)
       data.outcomesJson = body.outcomes ? JSON.stringify(body.outcomes) : "";
     if (body.isPublished !== undefined) data.isPublished = Boolean(body.isPublished);
