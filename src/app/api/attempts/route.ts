@@ -294,43 +294,46 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(
-      attempts.map((a) => {
-        let certDetails: any = {};
-        try {
-          if (a.certDetailsJson) certDetails = JSON.parse(a.certDetailsJson);
-        } catch {}
-        return {
-          id: a.id,
-          name: a.student.name,
-          phone: a.student.phone,
-          age: a.student.age,
-          country: a.student.country,
-          testTitle: a.test.title,
-          testEmoji: a.test.emoji,
-          testId: a.testId,
-          score: a.score,
-          total: a.total,
-          percentage: a.percentage,
-          level: a.level,
-          levelName: a.levelName,
-          program: a.program,
-          wantsInterview: a.wantsInterview,
-          answersJson: a.answersJson,
-          createdAt: a.createdAt,
-          certRequested: a.certRequested,
-          certDetailsJson: a.certDetailsJson,
-          nameAr: certDetails.nameAr || a.student.name,
-          nameEn: certDetails.nameEn || "",
-          khdaRequested: certDetails.isKhda || false,
-          certTitleAr: a.test.certTitleAr || "",
-          certTitleEn: a.test.certTitleEn || "",
-          testType: a.test.certificateType || "level",
-          courseHours: a.test.courseHours || 30,
-          showSponsorOnCert: a.test.showSponsorOnCert !== false,
-          institutionName: a.test.institutionName || "",
-          institutionLogo: a.test.institutionLogo || "",
-        };
-      })
+      attempts
+        .map((a) => {
+          if (!a || !a.student || !a.test) return null;
+          let certDetails: any = {};
+          try {
+            if (a.certDetailsJson) certDetails = JSON.parse(a.certDetailsJson);
+          } catch {}
+          return {
+            id: a.id,
+            name: a.student.name || "طالب",
+            phone: a.student.phone || "",
+            age: a.student.age || 0,
+            country: a.student.country || "",
+            testTitle: a.test.title || "اختبار",
+            testEmoji: a.test.emoji || "📝",
+            testId: a.testId,
+            score: a.score,
+            total: a.total,
+            percentage: a.percentage,
+            level: a.level,
+            levelName: a.levelName,
+            program: a.program,
+            wantsInterview: a.wantsInterview,
+            answersJson: a.answersJson,
+            createdAt: a.createdAt,
+            certRequested: a.certRequested,
+            certDetailsJson: a.certDetailsJson,
+            nameAr: certDetails.nameAr || a.student.name,
+            nameEn: certDetails.nameEn || "",
+            khdaRequested: certDetails.isKhda || false,
+            certTitleAr: a.test.certTitleAr || "",
+            certTitleEn: a.test.certTitleEn || "",
+            testType: a.test.certificateType || "level",
+            courseHours: a.test.courseHours || 30,
+            showSponsorOnCert: a.test.showSponsorOnCert !== false,
+            institutionName: a.test.institutionName || "",
+            institutionLogo: a.test.institutionLogo || "",
+          };
+        })
+        .filter(Boolean)
     );
   } catch (err) {
     console.error("GET /api/attempts:", err);

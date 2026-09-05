@@ -62,6 +62,7 @@ export default function TakeTestIntro({
           const checkData = await checkRes.json();
           if (checkData.canTake === false) {
             setRetakeBlocked(true);
+            setStep("intro");
             setLoading(false);
             return;
           }
@@ -351,6 +352,24 @@ export default function TakeTestIntro({
             </div>
 
             <div className="card-fun p-6 sm:p-8 space-y-5">
+              {retakeBlocked && (
+                <div className="card-fun p-5 bg-red-50/90 border-2 border-red-300 text-center space-y-3 shadow-md mb-4">
+                  <div className="text-4xl">🛑</div>
+                  <h3 className="text-xl font-black text-red-900">غير مسموح بإعادة هذا الاختبار</h3>
+                  <p className="text-red-700 font-semibold text-xs leading-relaxed max-w-md mx-auto">
+                    عذراً، لقد قمت بإجراء هذا الاختبار مسبقاً، وقامت الإدارة بإلغاء خاصية إعانة الاختبار لمنع التكرار.
+                  </p>
+                  <div className="flex justify-center gap-3 pt-1">
+                    <a
+                      href={`/lookup?phone=${encodeURIComponent(user?.username || phone || "")}`}
+                      className="btn-fun inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-5 py-2.5 text-sm"
+                    >
+                      📜 استعراض نتيجتك وشهادتك السابقة
+                    </a>
+                  </div>
+                </div>
+              )}
+
               {phoneState === "init" && (
                 <>
                   <div className="space-y-2">
