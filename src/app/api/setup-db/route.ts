@@ -109,7 +109,12 @@ CREATE TABLE IF NOT EXISTS "Attempt" (
       `);
     } catch(e) {}
 
-    return NextResponse.json({ success: true, message: "Tables created successfully!" });
+    try {
+      const { ensureSeed } = await import("@/lib/seed");
+      await ensureSeed();
+    } catch(e) {}
+
+    return NextResponse.json({ success: true, message: "Tables created & seeded successfully!" });
   } catch (err: any) {
     return NextResponse.json({ 
       success: false, 

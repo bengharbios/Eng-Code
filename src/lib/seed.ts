@@ -132,94 +132,96 @@ export async function ensureSeed() {
       });
     }
 
-    // Update existing diagnostic & placement test details to reflect Dr. Duaa's full name & accreditation
-    await db.test.updateMany({
-      where: { slug: "tashkhees" },
-      data: {
-        description: "اختبار تشخيصي من 5 أسئلة وفق الدليل التشخيصي المعتمد، يقيس حاجزك النفسي ونمط معالجتك اللغوية ليقترح لك المستوى والمسار الأمثل للبدء به.",
-        accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
-        logoUrl: "/images/lfl-logo.png",
-        institutionName: "مؤسسة قيادة التعلم المرح (LFL)",
-        outcomesJson: JSON.stringify(DIAGNOSTIC_OUTCOMES),
-      },
-    });
-
-    await db.test.updateMany({
-      where: { slug: "placement" },
-      data: {
-        accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
-      },
-    });
-
-    // 2. Ensure system tests exist
-    const testCount = await db.test.count();
-    if (testCount > 0) {
-      seeded = true;
-      return;
+    // Ensure placement test exists
+    let placement = await db.test.findUnique({ where: { slug: "placement" } });
+    if (!placement) {
+      placement = await db.test.create({
+        data: {
+          slug: "placement",
+          title: "اختبار تحديد المستوى — مغامرة المستوى",
+          description:
+            "اختبار تفاعلي ممتع من 20 سؤالاً مصوّراً لقياس مستواك الحقيقي في اللغة الإنجليزية وفق الإطار الأوروبي المرجعي (CEFR) مع نتيجة فورية وتوصية بالمستوى المناسب.",
+          language: "en",
+          kind: "points",
+          isSystem: true,
+          isPublished: true,
+          emoji: "🚀",
+          color: "#7c3aed",
+          levelTag: "CEFR",
+          passPercent: 50,
+          accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
+          ownerId: duaa.id,
+        },
+      });
+      await db.question.createMany({
+        data: QUESTIONS.map((q, i) => ({
+          testId: placement.id,
+          order: i,
+          type: q.type === "picture" ? "picture" : q.type === "reading" ? "reading" : "choice",
+          text: q.question,
+          passage: q.passage ?? "",
+          emoji: q.emoji ?? "",
+          optionsJson: JSON.stringify(q.options.map((t) => ({ text: t }))),
+          answerIndex: q.answer,
+          points: 5,
+        })),
+      });
+    } else {
+      await db.test.update({
+        where: { id: placement.id },
+        data: {
+          isPublished: true,
+          accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
+        },
+      }).catch(() => {});
     }
 
-    // ===== System test 1: CEFR Placement (locked) =====
-    const placement = await db.test.create({
-      data: {
-        slug: "placement",
-        title: "اختبار تحديد المستوى — مغامرة المستوى",
-        description:
-          "اختبار تفاعلي ممتع من 20 سؤالاً مصوّراً لقياس مستواك الحقيقي في اللغة الإنجليزية وفق الإطار الأوروبي المرجعي (CEFR) مع نتيجة فورية وتوصية بالمستوى المناسب.",
-        language: "en",
-        kind: "points",
-        isSystem: true,
-        isPublished: true,
-        emoji: "🚀",
-        color: "#7c3aed",
-        levelTag: "CEFR",
-        passPercent: 50,
-        accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
-        ownerId: duaa.id,
-      },
-    });
-    await db.question.createMany({
-      data: QUESTIONS.map((q, i) => ({
-        testId: placement.id,
-        order: i,
-        type: q.type === "picture" ? "picture" : q.type === "reading" ? "reading" : "choice",
-        text: q.question,
-        passage: q.passage ?? "",
-        emoji: q.emoji ?? "",
-        optionsJson: JSON.stringify(q.options.map((t) => ({ text: t }))),
-        answerIndex: q.answer,
-        points: 5,
-      })),
-    });
-
-    // ===== System test 2: Diagnostic (from the PDF, locked) =====
-    const diagnostic = await db.test.create({
-      data: {
-        slug: "tashkhees",
-        title: "الاختبار التشخيصي — تحديد المسار الأمثل",
-        description:
-          "اختبار تشخيصي من 5 أسئلة وفق الدليل التشخيصي المعتمد، يقيس حاجزك النفسي ونمط معالجتك اللغوية ليقترح لك المستوى والمسار الأمثل للبدء به.",
-        language: "ar",
-        kind: "diagnostic",
-        isSystem: true,
-        isPublished: true,
-        emoji: "🧭",
-        color: "#0e7490",
-        levelTag: "general",
-        accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
-        outcomesJson: JSON.stringify(DIAGNOSTIC_OUTCOMES),
-        ownerId: duaa.id,
-      },
-    });
-    await db.question.createMany({
-      data: DIAGNOSTIC_QUESTIONS.map((q, i) => ({
-        testId: diagnostic.id,
-        order: i,
-        type: "choice",
-        text: q.text,
-        optionsJson: JSON.stringify(q.options),
-        points: 1,
-      })),
-    });
+    // Ensure diagnostic test exists
+    let diagnostic = await db.test.findUnique({ where: { slug: "tashkhees" } });
+    if (!diagnostic) {
+      diagnostic = await db.test.create({
+        data: {
+          slug: "tashkhees",
+          title: "الاختبار التشخيصي — تحديد المسار الأمثل",
+          description:
+            "اختبار تشخيصي من 5 أسئلة وفق الدليل التشخيصي المعتمد، يقيس حاجزك النفسي ونمط معالجتك اللغوية ليقترح لك المستوى والمسار الأمثل للبدء به.",
+          language: "ar",
+          kind: "diagnostic",
+          isSystem: true,
+          isPublished: true,
+          emoji: "🧭",
+          color: "#0e7490",
+          levelTag: "general",
+          accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
+          logoUrl: "/images/lfl-logo.png",
+          institutionName: "مؤسسة قيادة التعلم المرح (LFL)",
+          outcomesJson: JSON.stringify(DIAGNOSTIC_OUTCOMES),
+          ownerId: duaa.id,
+        },
+      });
+      await db.question.createMany({
+        data: DIAGNOSTIC_QUESTIONS.map((q, i) => ({
+          testId: diagnostic.id,
+          order: i,
+          type: "choice",
+          text: q.text,
+          optionsJson: JSON.stringify(q.options),
+          points: 1,
+        })),
+      });
+    } else {
+      await db.test.update({
+        where: { id: diagnostic.id },
+        data: {
+          isPublished: true,
+          description: "اختبار تشخيصي من 5 أسئلة وفق الدليل التشخيصي المعتمد، يقيس حاجزك النفسي ونمط معالجتك اللغوية ليقترح لك المستوى والمسار الأمثل للبدء به.",
+          accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
+          logoUrl: "/images/lfl-logo.png",
+          institutionName: "مؤسسة قيادة التعلم المرح (LFL)",
+          outcomesJson: JSON.stringify(DIAGNOSTIC_OUTCOMES),
+        },
+      }).catch(() => {});
+    }
 
     seeded = true;
     console.log("✅ Seed completed: users + placement + diagnostic tests");
