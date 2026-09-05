@@ -44,6 +44,8 @@ model Test {
   certificateType      String   @default("level") // 'attendance' | 'level'
   allowKhdaAttestation Boolean  @default(true)
   khdaFee              Int      @default(140)
+  certTitleAr          String   @default("")
+  certTitleEn          String   @default("")
   outcomesJson    String   @default("") // diagnostic outcomes {buckets:[{key,emoji,title,description,program,color}],tie:{...}}
   ownerId       String
   owner         User     @relation(fields: [ownerId], references: [id])

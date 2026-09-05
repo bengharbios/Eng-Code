@@ -104,6 +104,8 @@ export async function POST(req: NextRequest) {
       certificateType = "level",
       allowKhdaAttestation = true,
       khdaFee = 140,
+      certTitleAr = "",
+      certTitleEn = "",
       outcomes = null,
       questions = [],
     } = body ?? {};
@@ -143,6 +145,8 @@ export async function POST(req: NextRequest) {
         certificateType: certificateType === "attendance" ? "attendance" : "level",
         allowKhdaAttestation: Boolean(allowKhdaAttestation),
         khdaFee: Math.max(0, Number(khdaFee) || 140),
+        certTitleAr: String(certTitleAr || "").slice(0, 200),
+        certTitleEn: String(certTitleEn || "").slice(0, 200),
         outcomesJson: outcomes ? JSON.stringify(outcomes) : "",
         ownerId: (body.ownerId && session.role === "super") ? String(body.ownerId) : session.uid,
         questions: {

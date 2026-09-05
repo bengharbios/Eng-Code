@@ -95,6 +95,8 @@ export default function TestEditor({
   const [certificateType, setCertificateType] = useState<"attendance" | "level">("level");
   const [allowKhdaAttestation, setAllowKhdaAttestation] = useState(true);
   const [khdaFee, setKhdaFee] = useState(140);
+  const [certTitleAr, setCertTitleAr] = useState("");
+  const [certTitleEn, setCertTitleEn] = useState("");
   const [questions, setQuestions] = useState<QItem[]>([emptyQuestion("points")]);
   const [outcomes, setOutcomes] = useState<OutcomesDoc>({
     buckets: [],
@@ -142,6 +144,8 @@ export default function TestEditor({
         setCertificateType(d.certificateType || "level");
         setAllowKhdaAttestation(d.allowKhdaAttestation ?? true);
         setKhdaFee(d.khdaFee ?? 140);
+        setCertTitleAr(d.certTitleAr || "");
+        setCertTitleEn(d.certTitleEn || "");
         setQuestions(
           (d.questions || []).map(
             (q: {
@@ -262,6 +266,8 @@ export default function TestEditor({
         certificateType,
         allowKhdaAttestation,
         khdaFee,
+        certTitleAr,
+        certTitleEn,
         ownerId: selectedOwnerId || undefined,
         outcomes: kind === "diagnostic" ? outcomes : null,
         questions: questions.map((q) => ({
@@ -534,6 +540,27 @@ export default function TestEditor({
                       {allowKhdaAttestation ? "إتاحة طلب تصديق KHDA (140 درهم)" : "شهادة المعهد المجانية فقط"}
                     </span>
                   </div>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="font-bold text-amber-900 text-xs">عنوان الشهادة الرئيسي بالعربية (اختياري - يترك فارغاً للعنوان الافتراضي)</Label>
+                  <Input
+                    value={certTitleAr}
+                    onChange={(e) => setCertTitleAr(e.target.value)}
+                    placeholder="مثال: شهادة تحديد مستوى وإنجاز / شهادة حضور / شهادة إتمام دورة"
+                    className="h-10 rounded-xl border-amber-300 bg-white font-bold text-sm text-amber-950"
+                  />
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="font-bold text-amber-900 text-xs">Certificate Title in English (الترجمة الإنجليزية لعنوان الشهادة)</Label>
+                  <Input
+                    value={certTitleEn}
+                    onChange={(e) => setCertTitleEn(e.target.value)}
+                    placeholder="Example: LEVEL ASSESSMENT & ACHIEVEMENT CERTIFICATE / CERTIFICATE OF ATTENDANCE"
+                    className="h-10 rounded-xl border-amber-300 bg-white font-bold text-sm text-amber-950"
+                    dir="ltr"
+                  />
                 </div>
 
                 {allowKhdaAttestation && (

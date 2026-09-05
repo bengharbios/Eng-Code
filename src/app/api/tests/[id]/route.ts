@@ -56,6 +56,8 @@ export async function GET(
       certificateType: test.certificateType,
       allowKhdaAttestation: test.allowKhdaAttestation,
       khdaFee: test.khdaFee,
+      certTitleAr: test.certTitleAr || "",
+      certTitleEn: test.certTitleEn || "",
       outcomes: test.outcomesJson ? JSON.parse(test.outcomesJson) : null,
       ownerId: test.ownerId,
       ownerName: test.owner.name,
@@ -119,6 +121,8 @@ export async function PATCH(
       data.certificateType = body.certificateType === "attendance" ? "attendance" : "level";
     if (body.allowKhdaAttestation !== undefined) data.allowKhdaAttestation = Boolean(body.allowKhdaAttestation);
     if (body.khdaFee !== undefined) data.khdaFee = Math.max(0, Number(body.khdaFee) || 140);
+    if (body.certTitleAr !== undefined) data.certTitleAr = String(body.certTitleAr || "").slice(0, 200);
+    if (body.certTitleEn !== undefined) data.certTitleEn = String(body.certTitleEn || "").slice(0, 200);
     if (body.outcomes !== undefined)
       data.outcomesJson = body.outcomes ? JSON.stringify(body.outcomes) : "";
     if (body.isPublished !== undefined) data.isPublished = Boolean(body.isPublished);

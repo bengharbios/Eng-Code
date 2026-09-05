@@ -31,6 +31,8 @@ export interface PublicTest {
   certificateType?: "attendance" | "level";
   allowKhdaAttestation?: boolean;
   khdaFee?: number;
+  certTitleAr?: string;
+  certTitleEn?: string;
 }
 
 export interface ResultLevelInfo {

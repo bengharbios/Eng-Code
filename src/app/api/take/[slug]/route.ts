@@ -39,6 +39,8 @@ export async function GET(
       certificateType: test.certificateType,
       allowKhdaAttestation: test.allowKhdaAttestation,
       khdaFee: test.khdaFee,
+      certTitleAr: test.certTitleAr || "",
+      certTitleEn: test.certTitleEn || "",
       questions: test.questions.map((q) => ({
         id: q.id,
         order: q.order,

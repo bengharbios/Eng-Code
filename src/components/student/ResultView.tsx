@@ -513,6 +513,8 @@ export default function ResultView({
               issueDate: new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
               institutionName: test?.institutionName,
               institutionLogo: test?.logoUrl,
+              certTitleAr: test?.certTitleAr,
+              certTitleEn: test?.certTitleEn,
               isKhda: isKhdaCert,
               khdaFee: test?.khdaFee || 140,
               certId: result.attemptId.slice(-8).toUpperCase(),
