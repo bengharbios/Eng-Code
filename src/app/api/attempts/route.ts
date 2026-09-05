@@ -282,6 +282,13 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    const maskPhone = (ph: string) => {
+      if (!ph) return "";
+      const cleaned = ph.replace(/\D/g, "");
+      if (cleaned.length <= 6) return "*****";
+      return cleaned.slice(0, 4) + "****" + cleaned.slice(-3);
+    };
+
     return NextResponse.json(
       attempts
         .map((a) => {
@@ -293,7 +300,7 @@ export async function GET(req: NextRequest) {
           return {
             id: a.id,
             name: a.student.name || "طالب",
-            phone: a.student.phone || "",
+            phone: isSuperAdmin ? (a.student.phone || "") : maskPhone(a.student.phone || ""),
             age: a.student.age || 0,
             country: a.student.country || "",
             testTitle: a.test.title || "اختبار",

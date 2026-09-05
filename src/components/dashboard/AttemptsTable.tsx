@@ -39,10 +39,11 @@ export default function AttemptsTable({
   const { user } = useSession();
   
   const isSuper = user?.role === "super";
-  const isPhoneHidden = !isSuper && hideInstructorPhone;
+  const isPhoneHidden = !isSuper && hideInstructorPhone !== false;
 
   const maskPhoneNum = (ph: string) => {
     if (!ph) return "";
+    if (ph.includes("*")) return ph;
     const cleaned = ph.replace(/\D/g, "");
     if (cleaned.length <= 6) return "*****";
     return cleaned.slice(0, 4) + "****" + cleaned.slice(-3);

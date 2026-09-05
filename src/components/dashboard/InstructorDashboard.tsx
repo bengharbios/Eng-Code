@@ -162,7 +162,7 @@ export default function InstructorDashboard({ userName }: { userName: string }) 
           attempts={attempts}
           loading={attemptsLoading}
           exportTestId={resultsTestId ?? "all"}
-          hideInstructorPhone={siteSettings?.hideInstructorStudentPhone === "true"}
+          hideInstructorPhone={siteSettings?.hideInstructorStudentPhone !== "false"}
           onRefresh={() => {
             if (resultsTestId) loadResults(resultsTestId);
           }}

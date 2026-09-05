@@ -34,9 +34,18 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    const isSuper = session.role === "super";
+
+    const maskPhone = (ph: string) => {
+      if (!ph) return "";
+      const cleaned = ph.replace(/\D/g, "");
+      if (cleaned.length <= 6) return "*****";
+      return cleaned.slice(0, 4) + "****" + cleaned.slice(-3);
+    };
+
     const rows = attempts.map((a) => ({
       "الاسم": a.student.name,
-      "الهاتف": a.student.phone,
+      "الهاتف": isSuper ? a.student.phone : maskPhone(a.student.phone),
       "العمر": a.student.age,
       "الدولة": a.student.country,
       "الاختبار": a.test.title,

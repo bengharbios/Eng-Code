@@ -1152,7 +1152,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                     <span className="text-xs font-black text-purple-900">إخفاء الأرقام عن المحاضرين</span>
                     <input
                       type="checkbox"
-                      checked={siteSettings.hideInstructorStudentPhone === "true"}
+                      checked={siteSettings.hideInstructorStudentPhone !== "false"}
                       onChange={(e) => setSiteSettings(prev => ({ ...prev, hideInstructorStudentPhone: e.target.checked ? "true" : "false" }))}
                       className="w-4.5 h-4.5 rounded text-purple-600 cursor-pointer"
                     />
