@@ -212,7 +212,7 @@ export default function TakeTestIntro({
                   type="button"
                   onClick={() => {
                     playClick();
-                    const url = `${window.location.origin}/test/${test.slug}`;
+                    const url = `${window.location.origin}/?t=${test.slug}`;
                     if (navigator.clipboard) {
                       navigator.clipboard.writeText(url);
                       alert(t("linkCopiedMsg"));

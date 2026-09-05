@@ -216,7 +216,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
   };
 
   const copyLink = (slug: string) => {
-    const url = `${window.location.origin}/test/${slug}`;
+    const url = `${window.location.origin}/?t=${slug}`;
     navigator.clipboard
       .writeText(url)
       .then(() => toast({ title: t("copied"), description: url }))
