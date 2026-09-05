@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import TakeTestIntro from "./TakeTestIntro";
 import QuizEngine from "./QuizEngine";
 import ResultView from "./ResultView";
@@ -20,6 +21,7 @@ export default function TakeTest({
   siteSettings?: Record<string, string>;
 }) {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [step, setStep] = useState<Step>("loading");
   const [test, setTest] = useState<PublicTest | null>(null);
   const [student, setStudent] = useState<StudentRegInfo | null>(null);
@@ -70,22 +72,22 @@ export default function TakeTest({
         setStep("result");
       } catch (e: any) {
         toast({
-          title: "تعذر تقديم الاختبار",
-          description: e.message || "حدث خطأ غير متوقع",
+          title: t("submitError"),
+          description: e.message || t("errorGeneric"),
           variant: "destructive",
         });
       } finally {
         setSubmitting(false);
       }
     },
-    [test, student, toast]
+    [test, student, toast, t]
   );
 
   if (step === "loading") {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <span className="animate-spin rounded-full h-14 w-14 border-b-4 border-purple-600" />
-        <p className="text-purple-600 font-bold animate-pulse">جاري تحميل الاختبار...</p>
+        <p className="text-purple-600 font-bold animate-pulse">{t("loadingTest")}</p>
       </div>
     );
   }

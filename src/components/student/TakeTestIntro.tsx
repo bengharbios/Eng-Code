@@ -215,12 +215,12 @@ export default function TakeTestIntro({
                     const url = `${window.location.origin}/test/${test.slug}`;
                     if (navigator.clipboard) {
                       navigator.clipboard.writeText(url);
-                      alert("تم نسخ رابط هذا الاختبار بنجاح! يمكنك الآن مشاركته عبر الواتساب.");
+                      alert(t("linkCopiedMsg"));
                     }
                   }}
                   className="bg-fuchsia-100 hover:bg-fuchsia-200 text-fuchsia-800 rounded-full px-3 py-1 transition flex items-center gap-1 cursor-pointer"
                 >
-                  🔗 مشاركة هذا الاختبار
+                  {t("shareTest")}
                 </button>
               </div>
             </div>

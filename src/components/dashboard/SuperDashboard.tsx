@@ -107,7 +107,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
 
   const addInstructor = async () => {
     if (!instName.trim() || !instUsername.trim() || !instPassword.trim()) {
-      toast({ title: "أكمل جميع الحقول", variant: "destructive" });
+      toast({ title: t("fillAllFields"), variant: "destructive" });
       return;
     }
     const res = await fetch("/api/instructors", {
@@ -130,7 +130,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
       toast({ title: msg, variant: "destructive" });
       return;
     }
-    toast({ title: `✅ تم إنشاء حساب ${instName.trim()}` });
+    toast({ title: `✅ ${t("accountCreatedOk")}: ${instName.trim()}` });
     setInstName("");
     setInstUsername("");
     setInstPassword("");
@@ -165,14 +165,14 @@ export default function SuperDashboard({ userName }: { userName: string }) {
     const res = await fetch(`/api/instructors/${u.id}`, { method: "DELETE" });
     const data = await res.json().catch(() => ({}));
     toast({
-      title: res.ok ? "🗑️ تم الحذف" : data.error === "locked" ? "لا يمكن حذف حساب سوبر أدمن" : t("errorGeneric"),
+      title: res.ok ? t("deletedOk") : data.error === "locked" ? "لا يمكن حذف حساب سوبر أدمن" : t("errorGeneric"),
       variant: res.ok ? undefined : "destructive",
     });
     if (res.ok) loadAll();
   };
 
   const promoteToInstructor = async (s: StudentItem) => {
-    if (!confirm(`هل أنت متأكد من تحويل الطالب "${s.name}" إلى محاضر؟ سيتمكن من تسجيل الدخول وإنشاء وتحديد اختباراته.`)) return;
+    if (!confirm(`${t("confirmPromote")}\n(${s.name})`)) return;
     try {
       const res = await fetch(`/api/admin/students/${s.id}`, {
         method: "PATCH",
@@ -180,13 +180,13 @@ export default function SuperDashboard({ userName }: { userName: string }) {
         body: JSON.stringify({ role: "instructor" }),
       });
       if (res.ok) {
-        toast({ title: "🎓 تم الترقية بنجاح", description: `أصبح ${s.name} محاضراً في المنصة الآن.` });
+        toast({ title: t("promotedOk"), description: s.name });
         loadAll();
       } else {
-        toast({ title: "تعذر الترقية", variant: "destructive" });
+        toast({ title: t("promoteFailed"), variant: "destructive" });
       }
     } catch {
-      toast({ title: "حدث خطأ بالخادم", variant: "destructive" });
+      toast({ title: t("serverError"), variant: "destructive" });
     }
   };
 
@@ -210,7 +210,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
     if (!confirm(`${t("confirmDelete")}\n${test.title}`)) return;
     const res = await fetch(`/api/tests/${test.id}`, { method: "DELETE" });
     if (res.ok) {
-      toast({ title: "🗑️ تم الحذف" });
+      toast({ title: t("deletedOk") });
       loadAll();
     }
   };
@@ -239,24 +239,24 @@ export default function SuperDashboard({ userName }: { userName: string }) {
   }
 
   const resetStudentPassword = async (s: any) => {
-    if (!confirm(`هل تريد مسح كلمة مرور الطالب ${s.name}؟ سيتمكن من إنشاء كلمة جديدة في الدخول القادم.`)) return;
+    if (!confirm(`${t("confirmResetPw")}\n(${s.name})`)) return;
     const res = await fetch(`/api/admin/students/${s.id}`, { method: "PATCH" });
     if (res.ok) {
-      toast({ title: `✅ تم مسح كلمة مرور ${s.name}` });
+      toast({ title: `${t("passwordResetOk")}: ${s.name}` });
       loadAll();
     } else {
-      toast({ title: "حدث خطأ", variant: "destructive" });
+      toast({ title: t("errorGeneric"), variant: "destructive" });
     }
   };
 
   const deleteStudent = async (s: any) => {
-    if (!confirm(`⚠️ هل تريد حذف حساب ${s.name} نهائياً؟ سيتم حذف جميع محاولاته أيضاً.`)) return;
+    if (!confirm(`${t("confirmDeleteStudent")}\n(${s.name})`)) return;
     const res = await fetch(`/api/admin/students/${s.id}`, { method: "DELETE" });
     if (res.ok) {
-      toast({ title: `🗑️ تم حذف حساب ${s.name}` });
+      toast({ title: `${t("deletedOk")}: ${s.name}` });
       loadAll();
     } else {
-      toast({ title: "حدث خطأ", variant: "destructive" });
+      toast({ title: t("errorGeneric"), variant: "destructive" });
     }
   };
 
@@ -264,7 +264,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      toast({ title: "حجم الصورة كبير جداً (الأقصى 2 ميجابايت)", variant: "destructive" });
+      toast({ title: t("imgSizeLimit"), variant: "destructive" });
       return;
     }
     const reader = new FileReader();
@@ -272,7 +272,7 @@ export default function SuperDashboard({ userName }: { userName: string }) {
       const base64 = evt.target?.result as string;
       if (base64) {
         setSiteSettings(prev => ({ ...prev, [key]: base64 }));
-        toast({ title: "✅ تم اختيار الصورة، لا تنسَ الضغط على 'حفظ التغييرات'" });
+        toast({ title: t("imgSelectedOk") });
       }
     };
     reader.readAsDataURL(file);
@@ -286,8 +286,8 @@ export default function SuperDashboard({ userName }: { userName: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(siteSettings),
       });
-      if (res.ok) toast({ title: "✅ تم حفظ الإعدادات" });
-      else toast({ title: "حدث خطأ", variant: "destructive" });
+      if (res.ok) toast({ title: t("settingsSaved") });
+      else toast({ title: t("errorGeneric"), variant: "destructive" });
     } finally {
       setSettingsSaving(false);
     }
@@ -301,10 +301,10 @@ export default function SuperDashboard({ userName }: { userName: string }) {
       body: JSON.stringify(perms),
     });
     if (res.ok) {
-      toast({ title: "✅ تم حفظ الصلاحيات" });
+      toast({ title: t("permsSaved") });
       setEditingPerms(null);
     } else {
-      toast({ title: "حدث خطأ", variant: "destructive" });
+      toast({ title: t("errorGeneric"), variant: "destructive" });
     }
   };
 

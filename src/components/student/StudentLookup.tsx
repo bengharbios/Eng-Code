@@ -201,10 +201,10 @@ export default function StudentLookup({ onBack }: { onBack: () => void }) {
                 {phoneState === "exists_with_password" && (
                   <button
                     type="button"
-                    onClick={() => alert("نسيت كلمة المرور؟\n\nتواصل مع المعهد وسيقوم المسؤول بمسح كلمة مرورك، ثم عند دخولك التالي ستتمكن من إنشاء كلمة مرور جديدة.\n\nيمكنك التواصل عبر واتساب أو الاتصال بنا.")}
+                    onClick={() => alert(t("forgotPwMsg"))}
                     className="text-sm text-purple-400 hover:text-purple-600 font-semibold mt-1 text-right w-full"
                   >
-                    نسيت كلمة المرور؟ 🔑
+                    {t("forgotPwBtn")}
                   </button>
                 )}
               </div>

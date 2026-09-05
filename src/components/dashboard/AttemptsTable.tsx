@@ -49,17 +49,17 @@ export default function AttemptsTable({
   }, [localAttempts]);
 
   const deleteAttempt = async (id: string, name: string) => {
-    if (!confirm(`هل أنت متأكد من حذف محاولة الطالب ${name}؟`)) return;
+    if (!confirm(`${t("confirmDeleteAttempt")}\n(${name})`)) return;
     // Optimistically remove from UI immediately
     setLocalAttempts(prev => prev.filter(a => a.id !== id));
     const res = await fetch(`/api/attempts?id=${id}`, { method: "DELETE" });
     if (res.ok) {
-      toast({ title: "✅ تم حذف المحاولة" });
+      toast({ title: t("attemptDeletedOk") });
       onRefresh?.();
     } else {
       // Restore on failure
       setLocalAttempts(attempts);
-      toast({ title: "حدث خطأ أثناء الحذف", variant: "destructive" });
+      toast({ title: t("errorGeneric"), variant: "destructive" });
     }
   };
 
