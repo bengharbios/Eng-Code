@@ -174,10 +174,26 @@ export async function PATCH(req: NextRequest) {
       dataToUpdate.wantsInterview = true;
     }
 
-    await db.attempt.update({
+    const attempt = await db.attempt.update({
       where: { id: String(attemptId) },
       data: dataToUpdate,
     });
+
+    if (certDetailsJson) {
+      try {
+        const details = JSON.parse(certDetailsJson);
+        if (details.nameAr || details.nameEn) {
+          await db.student.update({
+            where: { id: attempt.studentId },
+            data: {
+              ...(details.nameAr ? { name: details.nameAr.trim().slice(0, 120) } : {}),
+              ...(details.nameEn ? { nameEn: details.nameEn.trim().slice(0, 120) } : {}),
+            },
+          });
+        }
+      } catch (e) {}
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("PATCH /api/attempts:", err);

@@ -213,9 +213,9 @@ export default function AttemptsTable({
                               studentNameAr: a.nameAr || a.name,
                               studentNameEn: a.nameEn || "",
                               testTitle: a.testTitle,
-                              scorePercent: a.percentage,
                               levelName: a.levelName,
                               levelCode: a.level,
+                              courseHours: 30,
                               issueDate: new Date(a.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
                               isKhda: a.khdaRequested || false,
                               certId: a.id.slice(-8).toUpperCase(),
@@ -227,7 +227,7 @@ export default function AttemptsTable({
                               : "bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200"
                           }`}
                         >
-                          {a.khdaRequested ? "🏛️ مصدقة KHDA" : "📜 شهادة مجانية"}
+                          {a.khdaRequested ? "🏛️ طلب تصديق KHDA" : "📜 طلب شهادة مجانية"}
                         </button>
                       ) : (
                         <button
@@ -236,9 +236,9 @@ export default function AttemptsTable({
                               studentNameAr: a.nameAr || a.name,
                               studentNameEn: a.nameEn || "",
                               testTitle: a.testTitle,
-                              scorePercent: a.percentage,
                               levelName: a.levelName,
                               levelCode: a.level,
+                              courseHours: 30,
                               issueDate: new Date(a.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
                               isKhda: false,
                               certId: a.id.slice(-8).toUpperCase(),

@@ -431,19 +431,21 @@ export default function ResultView({
 
                 {/* Action Buttons */}
                 <div className="flex flex-wrap gap-3 mt-4">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      if (!certNameAr.trim()) {
-                        toast({ title: "يرجى كتابة الاسم بالعربية أولاً لمعاينة الشهادة", variant: "destructive" });
-                        return;
-                      }
-                      setShowCertPreview(true);
-                    }}
-                    className="btn-fun bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-base px-6 py-4 h-auto shadow-md"
-                  >
-                    👁️ معاينة وطباعة الشهادة
-                  </Button>
+                  {!test?.disableCertPreview && (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (!certNameAr.trim()) {
+                          toast({ title: "يرجى كتابة الاسم بالعربية أولاً لمعاينة الشهادة", variant: "destructive" });
+                          return;
+                        }
+                        setShowCertPreview(true);
+                      }}
+                      className="btn-fun bg-gradient-to-l from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black text-base px-6 py-4 h-auto shadow-md"
+                    >
+                      👁️ معاينة وطباعة الشهادة
+                    </Button>
+                  )}
 
                   <Button
                     type="button"
@@ -470,10 +472,10 @@ export default function ResultView({
                         }).catch(() => {});
 
                         setCertRequested(true);
-                        toast({ title: "✅ تم تسجيل طلب الشهادة!" });
+                        toast({ title: "✅ تم تسجيل طلب الشهادة وتأكيد الاسم بنجاح!" });
 
                         const certTypeName = isKhdaCert ? `مصدقة من هيئة المعرفة والتنمية البشرية KHDA (${test?.khdaFee || 140} درهم - 2-5 أيام عمل)` : "شهادة مجانية معتمدة من معهد السلام";
-                        const msgText = `مرحباً، أود طلب إصدار شهادة لنتيجتي:\n\n👤 الاسم بالعربية: ${certNameAr.trim()}\n🔤 Name in English: ${certNameEn.trim() || "غير محدد"}\n📝 الاختبار: ${testTitle}\n📊 النتيجة: ${result.percentage}% (${level.name})\n📜 نوع الشهادة: ${certTypeName}\n📱 رقم الهاتف: ${studentPhone || ""}`;
+                        const msgText = `مرحباً معهد السلام، أود طلب إصدار شهادتي الرسمية:\n\n👤 الاسم بالعربية: ${certNameAr.trim()}\n🔤 Name in English: ${certNameEn.trim() || "غير محدد"}\n📝 الاختبار: ${testTitle}\n📊 المستوى المطلوب: ${level.name}\n📜 نوع الشهادة: ${certTypeName}\n📱 رقم التواصل: ${studentPhone || ""}`;
                         const url = `https://wa.me/${whatsappClean}?text=${encodeURIComponent(msgText)}`;
                         window.open(url, "_blank");
                       } catch {
@@ -491,7 +493,7 @@ export default function ResultView({
 
                 {certRequested && (
                   <p className="text-xs font-bold text-emerald-700 mt-2">
-                    ✅ تم تسجيل طلبك وإعادة توجيهك للواتساب لإكمال التفاصيل!
+                    ✅ تم تسجيل طلب الشهادة بنجاح! سيتم مراجعة الطلب وإرسال الشهادة الرسمية PDF على رقم الواتساب الخاص بك.
                   </p>
                 )}
               </div>
@@ -507,7 +509,7 @@ export default function ResultView({
               studentNameEn: certNameEn.trim(),
               testTitle: testTitle,
               testType: testType,
-              scorePercent: result.percentage,
+              courseHours: test?.courseHours || 30,
               levelCode: level.code,
               levelName: level.name,
               issueDate: new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),

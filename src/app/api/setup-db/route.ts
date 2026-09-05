@@ -99,6 +99,9 @@ CREATE TABLE IF NOT EXISTS "Attempt" (
     try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "khdaFee" INTEGER NOT NULL DEFAULT 140;`); } catch(e) {}
     try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "certTitleAr" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
     try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "certTitleEn" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "courseHours" INTEGER NOT NULL DEFAULT 30;`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "disableCertPreview" BOOLEAN NOT NULL DEFAULT 0;`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Student" ADD COLUMN "nameEn" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
     try { await db.$executeRawUnsafe(`ALTER TABLE "Attempt" ADD COLUMN "certRequested" BOOLEAN NOT NULL DEFAULT 0;`); } catch(e) {}
     try { await db.$executeRawUnsafe(`ALTER TABLE "Attempt" ADD COLUMN "certDetailsJson" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
     try {

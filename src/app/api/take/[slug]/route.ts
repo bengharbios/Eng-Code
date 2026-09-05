@@ -41,6 +41,8 @@ export async function GET(
       khdaFee: test.khdaFee,
       certTitleAr: test.certTitleAr || "",
       certTitleEn: test.certTitleEn || "",
+      courseHours: test.courseHours ?? 30,
+      disableCertPreview: Boolean(test.disableCertPreview),
       questions: test.questions.map((q) => ({
         id: q.id,
         order: q.order,

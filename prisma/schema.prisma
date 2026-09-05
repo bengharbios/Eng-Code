@@ -18,7 +18,7 @@ model User {
   permissionsJson String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  tests           Test[]
+  tests           Test[]   @relation("UserTests")
 }
 
 // ===== Tests (placement system test + instructor-created tests) =====
@@ -44,11 +44,13 @@ model Test {
   certificateType      String   @default("level") // 'attendance' | 'level'
   allowKhdaAttestation Boolean  @default(true)
   khdaFee              Int      @default(140)
-  certTitleAr          String   @default("")
-  certTitleEn          String   @default("")
-  outcomesJson    String   @default("") // diagnostic outcomes {buckets:[{key,emoji,title,description,program,color}],tie:{...}}
+  certTitleAr          String?  @default("")
+  certTitleEn          String?  @default("")
+  courseHours          Int      @default(30)
+  disableCertPreview   Boolean  @default(false)
+  outcomesJson         String   @default("") // diagnostic outcomes {buckets:[{key,emoji,title,description,program,color}],tie:{...}}
   ownerId       String
-  owner         User     @relation(fields: [ownerId], references: [id])
+  owner         User     @relation("UserTests", fields: [ownerId], references: [id])
   questions     Question[]
   attempts      Attempt[]
   createdAt     DateTime @default(now())

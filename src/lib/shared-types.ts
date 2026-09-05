@@ -33,6 +33,8 @@ export interface PublicTest {
   khdaFee?: number;
   certTitleAr?: string;
   certTitleEn?: string;
+  courseHours?: number;
+  disableCertPreview?: boolean;
 }
 
 export interface ResultLevelInfo {

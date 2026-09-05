@@ -97,6 +97,8 @@ export default function TestEditor({
   const [khdaFee, setKhdaFee] = useState(140);
   const [certTitleAr, setCertTitleAr] = useState("");
   const [certTitleEn, setCertTitleEn] = useState("");
+  const [courseHours, setCourseHours] = useState<number>(30);
+  const [disableCertPreview, setDisableCertPreview] = useState<boolean>(false);
   const [questions, setQuestions] = useState<QItem[]>([emptyQuestion("points")]);
   const [outcomes, setOutcomes] = useState<OutcomesDoc>({
     buckets: [],
@@ -146,6 +148,8 @@ export default function TestEditor({
         setKhdaFee(d.khdaFee ?? 140);
         setCertTitleAr(d.certTitleAr || "");
         setCertTitleEn(d.certTitleEn || "");
+        setCourseHours(d.courseHours ?? 30);
+        setDisableCertPreview(Boolean(d.disableCertPreview));
         setQuestions(
           (d.questions || []).map(
             (q: {
@@ -268,6 +272,8 @@ export default function TestEditor({
         khdaFee,
         certTitleAr,
         certTitleEn,
+        courseHours,
+        disableCertPreview,
         ownerId: selectedOwnerId || undefined,
         outcomes: kind === "diagnostic" ? outcomes : null,
         questions: questions.map((q) => ({
@@ -561,6 +567,35 @@ export default function TestEditor({
                     className="h-10 rounded-xl border-amber-300 bg-white font-bold text-sm text-amber-950"
                     dir="ltr"
                   />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="font-bold text-amber-900 text-xs">عدد الساعات التدريبية (تظهر بالشهادة)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={500}
+                      value={courseHours}
+                      onChange={(e) => setCourseHours(Math.max(1, Number(e.target.value) || 30))}
+                      className="h-10 rounded-xl border-amber-300 bg-white font-black text-sm text-center text-amber-950 w-28"
+                    />
+                    <span className="text-xs font-bold text-amber-900">ساعة تدريبية</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2 bg-amber-100/40 p-3 rounded-xl border border-amber-200">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <Label className="font-extrabold text-amber-950 text-xs flex items-center gap-1.5">
+                        <span>💬</span> طلب الشهادة عبر الواتساب بدلاً من المعاينة المباشرة
+                      </Label>
+                      <p className="text-[11px] text-amber-800 font-medium">
+                        عند تفعيل هذا الخيار، يُطلب من الطالب تأكيد اسمه الكامل بالعربية والإنجليزية لإرسال طلب الشهادة للواتساب وتظهر في لوحة الإدارة لإرسالها له PDF.
+                      </p>
+                    </div>
+                    <Switch checked={disableCertPreview} onCheckedChange={setDisableCertPreview} />
+                  </div>
                 </div>
 
                 {allowKhdaAttestation && (
