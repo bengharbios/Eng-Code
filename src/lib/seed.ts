@@ -170,7 +170,6 @@ export async function ensureSeed() {
       await db.test.update({
         where: { id: placement.id },
         data: {
-          isPublished: true,
           accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
         },
       }).catch(() => {});
@@ -213,7 +212,6 @@ export async function ensureSeed() {
       await db.test.update({
         where: { id: diagnostic.id },
         data: {
-          isPublished: true,
           description: "اختبار تشخيصي من 5 أسئلة وفق الدليل التشخيصي المعتمد، يقيس حاجزك النفسي ونمط معالجتك اللغوية ليقترح لك المستوى والمسار الأمثل للبدء به.",
           accreditation: `${ACCREDITATION_TEXT}\n${ACCREDITATION_FOOTER}`,
           logoUrl: "/images/lfl-logo.png",
