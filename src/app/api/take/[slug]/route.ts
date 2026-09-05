@@ -51,7 +51,7 @@ export async function GET(
         text: q.text,
         passage: q.passage,
         emoji: q.emoji,
-        options: (JSON.parse(q.optionsJson) as { text: string }[]).map((o) => o.text),
+        options: (JSON.parse(q.optionsJson || "[]")).map((o: any) => typeof o === "string" ? o : (o?.text || "")),
         points: q.points,
       })),
     });

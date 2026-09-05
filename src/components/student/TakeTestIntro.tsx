@@ -49,6 +49,8 @@ export default function TakeTestIntro({
   const [password, setPassword] = useState("");
   const [age, setAge] = useState("");
   const [country, setCountry] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
   const [retakeBlocked, setRetakeBlocked] = useState(false);
 
   const handleStart = async (info: StudentRegInfo) => {
