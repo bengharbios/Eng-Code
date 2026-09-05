@@ -20,6 +20,7 @@ export interface CertificateData {
   isKhda: boolean;
   khdaFee?: number;
   certId?: string;
+  studentPhone?: string;
 }
 
 export default function CertificateView({
@@ -31,7 +32,8 @@ export default function CertificateView({
 }) {
   const certRef = useRef<HTMLDivElement>(null);
 
-  const isLevel = data.testType === "level" || !!data.levelName;
+  // Level badge is strictly for level certificates only (never attendance)
+  const isLevel = data.testType === "level";
   const certTitleAr = data.certTitleAr?.trim() || (isLevel ? "شهادة تحديد مستوى وإنجاز" : "شهادة حضور تدريبية");
   const certTitleEn = data.certTitleEn?.trim() || (isLevel ? "LEVEL ASSESSMENT & ACHIEVEMENT CERTIFICATE" : "CERTIFICATE OF ATTENDANCE");
   const hours = data.courseHours || 30;
@@ -149,6 +151,18 @@ export default function CertificateView({
           </h3>
         </div>
         <div className="flex items-center gap-3">
+          {data.studentPhone && (
+            <a
+              href={`https://wa.me/${data.studentPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                `مرحباً ${data.studentNameAr || data.studentNameEn}،\n\nنرفق لك تفاصيل شهادتك الرسمية من معهد السلام الثقافي:\n📜 نوع الشهادة: ${certTitleAr}\n📚 الاختبار: ${data.testTitle}\n⏱️ عدد الساعات: ${hours} ساعة تدريبية\n🔢 مرجع الشهادة: ${data.certId || "المعتمد"}\n\nيمكنك الاطلاع على الشهادة وطباعتها كـ PDF عبر الرابط:\n${typeof window !== "undefined" ? window.location.origin : ""}/lookup?phone=${data.studentPhone}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-lg text-sm transition flex items-center gap-2 shadow-lg cursor-pointer"
+            >
+              💬 إرسال عبر الواتساب
+            </a>
+          )}
           <button
             type="button"
             onClick={handlePrintPopup}
@@ -254,7 +268,7 @@ export default function CertificateView({
 
               {/* Training Hours & Level Badge (NO percentage result shown) */}
               <div className="inline-flex items-center gap-3 bg-purple-50 border border-purple-200 px-4 py-1 rounded-full mt-1.5 shadow-sm">
-                {data.levelName && (
+                {isLevel && data.levelName && (
                   <span className="font-black text-purple-900 text-xs">
                     المستوى: {data.levelCode ? `[${data.levelCode}] ` : ""}{data.levelName}
                   </span>

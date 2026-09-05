@@ -8,11 +8,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import CertificateView from "@/components/certificate/CertificateView";
+import { useSession } from "@/components/SessionProvider";
 
 const LEVEL_COLORS: Record<string, string> = {
   A1: "#22c55e", A2: "#14b8a6", B1: "#f59e0b", B2: "#f97316", C1: "#8b5cf6",
   EXC: "#f59e0b", VGOOD: "#14b8a6", GOOD: "#f97316", REVIEW: "#8b5cf6",
 };
+
+const ARABIC_LETTERS = ["أ", "ب", "ج", "د", "هـ", "و"];
 
 export default function AttemptsTable({
   attempts,
@@ -21,6 +24,7 @@ export default function AttemptsTable({
   exportTestId = "all",
   emptyNote,
   onRefresh,
+  hideInstructorPhone = false,
 }: {
   attempts: AttemptRow[];
   loading: boolean;
@@ -28,9 +32,21 @@ export default function AttemptsTable({
   exportTestId?: string;
   emptyNote?: string;
   onRefresh?: () => void;
+  hideInstructorPhone?: boolean;
 }) {
   const { t } = useI18n();
   const { toast } = useToast();
+  const { user } = useSession();
+  
+  const isSuper = user?.role === "super";
+  const isPhoneHidden = !isSuper && hideInstructorPhone;
+
+  const maskPhoneNum = (ph: string) => {
+    if (!ph) return "";
+    const cleaned = ph.replace(/\D/g, "");
+    if (cleaned.length <= 6) return "*****";
+    return cleaned.slice(0, 4) + "****" + cleaned.slice(-3);
+  };
   
   const [localAttempts, setLocalAttempts] = useState<AttemptRow[]>(attempts);
   const [viewAttempt, setViewAttempt] = useState<any>(null);
@@ -81,6 +97,27 @@ export default function AttemptsTable({
       setViewAttempt(null);
     }
     setLoadingAttempt(false);
+  };
+
+  const openCertModal = (a: any, isKhdaOverride?: boolean) => {
+    setViewCertData({
+      studentNameAr: a.nameAr || a.name,
+      studentNameEn: a.nameEn || "",
+      testTitle: a.testTitle,
+      levelName: a.levelName,
+      levelCode: a.level,
+      certTitleAr: a.certTitleAr,
+      certTitleEn: a.certTitleEn,
+      testType: a.testType,
+      courseHours: a.courseHours || 30,
+      showSponsorOnCert: a.showSponsorOnCert !== false,
+      institutionName: a.institutionName,
+      institutionLogo: a.institutionLogo,
+      issueDate: new Date(a.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
+      isKhda: isKhdaOverride !== undefined ? isKhdaOverride : (a.khdaRequested || false),
+      certId: a.id.slice(-8).toUpperCase(),
+      studentPhone: a.phone,
+    });
   };
 
   return (
@@ -154,27 +191,33 @@ export default function AttemptsTable({
                   <tr key={a.id} className="border-t border-purple-50 hover:bg-purple-50/50">
                     <td className="p-3 font-bold text-purple-900">{a.name}</td>
                     <td className="p-3">
-                      <div className="flex items-center gap-1.5" dir="ltr">
-                        <a
-                          href={`tel:${a.phone}`}
-                          title="اتصال"
-                          className="w-7 h-7 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center text-sm"
-                        >
-                          📞
-                        </a>
-                        <a
-                          href={`https://wa.me/${a.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`أهلاً ${a.name}، تواصلنا معك من معهد السلام الثقافي بخصوص نتيجتك في ${a.testTitle}`)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="تواصل مباشر عبر واتساب"
-                          className="w-7 h-7 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-sm"
-                        >
-                          💬
-                        </a>
-                        <span className="font-semibold text-purple-700 whitespace-nowrap text-xs">
-                          {a.phone}
+                      {isPhoneHidden ? (
+                        <span className="font-semibold text-purple-500 text-xs bg-purple-100/70 px-2.5 py-1 rounded-full">
+                          🔒 {maskPhoneNum(a.phone)}
                         </span>
-                      </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5" dir="ltr">
+                          <a
+                            href={`tel:${a.phone}`}
+                            title="اتصال"
+                            className="w-7 h-7 rounded-full bg-orange-100 hover:bg-orange-200 flex items-center justify-center text-sm"
+                          >
+                            📞
+                          </a>
+                          <a
+                            href={`https://wa.me/${a.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`أهلاً ${a.name}، تواصلنا معك من معهد السلام الثقافي بخصوص نتيجتك في ${a.testTitle}`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="تواصل مباشر عبر واتساب"
+                            className="w-7 h-7 rounded-full bg-green-100 hover:bg-green-200 flex items-center justify-center text-sm"
+                          >
+                            💬
+                          </a>
+                          <span className="font-semibold text-purple-700 whitespace-nowrap text-xs">
+                            {a.phone}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td className="p-3 font-bold text-purple-700">{a.age}</td>
                     <td className="p-3 font-semibold text-purple-700">{a.country}</td>
@@ -208,19 +251,7 @@ export default function AttemptsTable({
                     <td className="p-3 text-center whitespace-nowrap">
                       {a.certRequested ? (
                         <button
-                          onClick={() =>
-                            setViewCertData({
-                              studentNameAr: a.nameAr || a.name,
-                              studentNameEn: a.nameEn || "",
-                              testTitle: a.testTitle,
-                              levelName: a.levelName,
-                              levelCode: a.level,
-                              courseHours: 30,
-                              issueDate: new Date(a.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
-                              isKhda: a.khdaRequested || false,
-                              certId: a.id.slice(-8).toUpperCase(),
-                            })
-                          }
+                          onClick={() => openCertModal(a)}
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black transition cursor-pointer ${
                             a.khdaRequested
                               ? "bg-pink-100 text-pink-900 border border-pink-300 hover:bg-pink-200"
@@ -231,19 +262,7 @@ export default function AttemptsTable({
                         </button>
                       ) : (
                         <button
-                          onClick={() =>
-                            setViewCertData({
-                              studentNameAr: a.nameAr || a.name,
-                              studentNameEn: a.nameEn || "",
-                              testTitle: a.testTitle,
-                              levelName: a.levelName,
-                              levelCode: a.level,
-                              courseHours: 30,
-                              issueDate: new Date(a.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
-                              isKhda: false,
-                              certId: a.id.slice(-8).toUpperCase(),
-                            })
-                          }
+                          onClick={() => openCertModal(a, false)}
                           className="text-xs text-purple-400 hover:text-purple-700 underline font-semibold"
                         >
                           معاينة الشهادة
@@ -298,10 +317,37 @@ export default function AttemptsTable({
             <div className="space-y-6 mt-4">
               {viewAttempt.test.questions.map((q: any, idx: number) => {
                 const parsedAnswers = JSON.parse(viewAttempt.answersJson || "[]");
-                const ans = parsedAnswers.find((x: any) => x.questionId === q.id);
+
+                let ansObj: any = null;
+                if (Array.isArray(parsedAnswers)) {
+                  ansObj = parsedAnswers.find(
+                    (x: any) => x && (x.questionId === q.id || String(x.questionId) === String(q.id))
+                  );
+                  if (!ansObj && parsedAnswers[idx] !== undefined) {
+                    ansObj = parsedAnswers[idx];
+                  }
+                } else if (typeof parsedAnswers === "object" && parsedAnswers !== null) {
+                  ansObj = parsedAnswers[q.id] ?? parsedAnswers[idx];
+                }
+
+                let selectedIdx: number | null = null;
+                if (ansObj !== null && ansObj !== undefined) {
+                  if (typeof ansObj === "number") selectedIdx = ansObj;
+                  else if (typeof ansObj.selected === "number") selectedIdx = ansObj.selected;
+                  else if (typeof ansObj.answer === "number") selectedIdx = ansObj.answer;
+                  else if (typeof ansObj.selected === "string" && !isNaN(Number(ansObj.selected))) selectedIdx = Number(ansObj.selected);
+                }
+
                 const options = JSON.parse(q.optionsJson || "[]");
-                const chosenOpt = ans !== undefined ? options[ans.selected] : null;
-                const isCorrect = viewAttempt.test.kind === "points" ? ans?.selected === q.answerIndex : true;
+                const hasAnswered = selectedIdx !== null && selectedIdx >= 0 && selectedIdx < options.length;
+                const chosenOpt = hasAnswered ? options[selectedIdx] : null;
+                const chosenText = typeof chosenOpt === "string" ? chosenOpt : (chosenOpt?.text || "غير معروف");
+                const chosenLetter = hasAnswered ? (ARABIC_LETTERS[selectedIdx] || String(selectedIdx + 1)) : "";
+
+                const isCorrect = viewAttempt.test.kind === "points" ? (selectedIdx === q.answerIndex) : true;
+                const correctOpt = options[q.answerIndex];
+                const correctText = typeof correctOpt === "string" ? correctOpt : correctOpt?.text;
+                const correctLetter = ARABIC_LETTERS[q.answerIndex] || String(q.answerIndex + 1);
                 
                 return (
                   <div key={q.id} className="p-4 rounded-xl border border-purple-100 bg-purple-50/50">
@@ -309,15 +355,17 @@ export default function AttemptsTable({
                       <span className="text-purple-500 ml-1">{idx + 1}.</span>
                       {q.text}
                     </p>
-                    <div className="text-sm font-semibold mt-2 p-2 rounded bg-white border border-purple-100">
-                      <span className="text-purple-500 ml-2">الإجابة المختارة:</span>
-                      <span className={viewAttempt.test.kind === "points" ? (isCorrect ? "text-emerald-600" : "text-red-600") : "text-purple-900"}>
-                        {ans !== undefined ? (typeof chosenOpt === "string" ? chosenOpt : (chosenOpt?.text || "غير معروف")) : "لم يجب"}
-                      </span>
-                      {viewAttempt.test.kind === "points" && ans?.selected !== q.answerIndex && (
-                        <div className="mt-1 text-emerald-600">
-                          <span className="text-purple-500 ml-2">الإجابة الصحيحة:</span>
-                          {typeof options[q.answerIndex] === "string" ? options[q.answerIndex] : options[q.answerIndex]?.text}
+                    <div className="text-sm font-semibold mt-2 p-3 rounded-lg bg-white border border-purple-100 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-purple-500 font-bold">الإجابة المختارة:</span>
+                        <span className={viewAttempt.test.kind === "points" ? (isCorrect ? "text-emerald-700 font-black" : "text-red-600 font-black") : "text-purple-950 font-black"}>
+                          {hasAnswered ? `(${chosenLetter}) ${chosenText}` : "لم يجب"}
+                        </span>
+                      </div>
+                      {viewAttempt.test.kind === "points" && selectedIdx !== q.answerIndex && (
+                        <div className="flex items-center gap-2 text-emerald-700 border-t border-purple-50 pt-1.5 mt-1">
+                          <span className="text-purple-500 font-bold">الإجابة الصحيحة:</span>
+                          <span className="font-extrabold">({correctLetter}) {correctText}</span>
                         </div>
                       )}
                     </div>

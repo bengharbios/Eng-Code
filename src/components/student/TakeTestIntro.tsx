@@ -49,10 +49,26 @@ export default function TakeTestIntro({
   const [password, setPassword] = useState("");
   const [age, setAge] = useState("");
   const [country, setCountry] = useState("");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
+  const [retakeBlocked, setRetakeBlocked] = useState(false);
 
-  const handleStart = (info: StudentRegInfo) => {
+  const handleStart = async (info: StudentRegInfo) => {
+    if (!test.allowRetake && info.phone) {
+      setLoading(true);
+      try {
+        const checkRes = await fetch(`/api/take/${encodeURIComponent(test.slug)}/check?phone=${encodeURIComponent(info.phone.trim())}`);
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          if (checkData.canTake === false) {
+            setRetakeBlocked(true);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
+      } finally {
+        setLoading(false);
+      }
+    }
     const fn = onStart || onBegin;
     if (fn) fn(info);
   };
@@ -254,28 +270,48 @@ export default function TakeTestIntro({
               </motion.div>
             )}
 
-            <div className="flex justify-center mt-8 gap-4 flex-col sm:flex-row items-center">
-              {user ? (
-                <Button
-                  onClick={submitAlreadyLoggedIn}
-                  className="btn-fun bg-gradient-to-l from-orange-500 to-amber-400 text-white text-2xl px-14 py-7 h-auto"
-                  style={{ ["--btn-fun-shadow" as string]: "#c2410c" }}
-                >
-                  الدخول للاختبار باسم {user.name}
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => {
-                    playClick();
-                    setStep("auth");
-                  }}
-                  className="btn-fun bg-gradient-to-l from-orange-500 to-amber-400 text-white text-2xl px-14 py-7 h-auto"
-                  style={{ ["--btn-fun-shadow" as string]: "#c2410c" }}
-                >
-                  {t("startNow")}
-                </Button>
-              )}
-            </div>
+            {retakeBlocked ? (
+              <div className="card-fun mt-8 p-6 bg-red-50/90 border-2 border-red-300 text-center space-y-4 shadow-xl">
+                <div className="text-5xl">🛑</div>
+                <h3 className="text-2xl font-black text-red-900">غير مسموح بإعادة هذا الاختبار</h3>
+                <p className="text-red-700 font-semibold text-sm leading-relaxed max-w-md mx-auto">
+                  عذراً، لقد قمت بإجراء هذا الاختبار مسبقاً، وقام الإدارة بإلغاء خاصية إعانة الاختبار لمنع التكرار.
+                </p>
+                <div className="flex justify-center gap-3 pt-2">
+                  <a
+                    href={`/lookup?phone=${encodeURIComponent(user?.username || phone || "")}`}
+                    className="btn-fun inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-6 py-3 text-base"
+                  >
+                    📜 استعراض نتيجتك وشهادتك السابقة
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-center mt-8 gap-4 flex-col sm:flex-row items-center">
+                {user ? (
+                  <Button
+                    onClick={submitAlreadyLoggedIn}
+                    disabled={loading}
+                    className="btn-fun bg-gradient-to-l from-orange-500 to-amber-400 text-white text-2xl px-14 py-7 h-auto"
+                    style={{ ["--btn-fun-shadow" as string]: "#c2410c" }}
+                  >
+                    {loading ? "جاري التحقق..." : `الدخول للاختبار باسم ${user.name}`}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      playClick();
+                      setStep("auth");
+                    }}
+                    disabled={loading}
+                    className="btn-fun bg-gradient-to-l from-orange-500 to-amber-400 text-white text-2xl px-14 py-7 h-auto"
+                    style={{ ["--btn-fun-shadow" as string]: "#c2410c" }}
+                  >
+                    {t("startNow")}
+                  </Button>
+                )}
+              </div>
+            )}
           </motion.div>
         ) : (
           <motion.div

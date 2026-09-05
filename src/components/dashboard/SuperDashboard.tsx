@@ -571,7 +571,14 @@ export default function SuperDashboard({ userName }: { userName: string }) {
 
           {/* ===== All results ===== */}
           {tab === "results" && (
-            <AttemptsTable attempts={attempts} loading={false} showTest exportTestId="all" onRefresh={loadAll} />
+            <AttemptsTable
+              attempts={attempts}
+              loading={false}
+              showTest
+              exportTestId="all"
+              onRefresh={loadAll}
+              hideInstructorPhone={siteSettings?.hideInstructorStudentPhone === "true"}
+            />
           )}
 
           {/* ===== Students ===== */}
@@ -1132,6 +1139,25 @@ export default function SuperDashboard({ userName }: { userName: string }) {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Privacy section */}
+              <div className="card-fun p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-purple-100 pb-2">
+                  <div>
+                    <h3 className="font-extrabold text-purple-900 text-base">🔒 حماية بيانات العملاء (أرقام تواصل الطلاب)</h3>
+                    <p className="text-xs text-purple-500 font-semibold mt-0.5">عند تفعيل هذا الخيار، سيتم تشفير وإخفاء أرقام هواتف الطلاب عن المحاضرين لمنع حفظها أو التواصل المباشر خارج المنصة.</p>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer bg-purple-50 border border-purple-200 px-3 py-1.5 rounded-xl shrink-0">
+                    <span className="text-xs font-black text-purple-900">إخفاء الأرقام عن المحاضرين</span>
+                    <input
+                      type="checkbox"
+                      checked={siteSettings.hideInstructorStudentPhone === "true"}
+                      onChange={(e) => setSiteSettings(prev => ({ ...prev, hideInstructorStudentPhone: e.target.checked ? "true" : "false" }))}
+                      className="w-4.5 h-4.5 rounded text-purple-600 cursor-pointer"
+                    />
+                  </label>
+                </div>
               </div>
 
               {/* Footer text */}

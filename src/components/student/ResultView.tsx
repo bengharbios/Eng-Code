@@ -528,13 +528,15 @@ export default function ResultView({
         )}
 
         <div className="flex flex-wrap justify-center gap-3 mt-6">
-          <Button
-            onClick={onRetake}
-            variant="ghost"
-            className="text-purple-500 font-bold hover:text-purple-700 hover:bg-purple-50 text-lg rounded-full"
-          >
-            {t("retake")}
-          </Button>
+          {test?.allowRetake !== false && (
+            <Button
+              onClick={onRetake}
+              variant="ghost"
+              className="text-purple-500 font-bold hover:text-purple-700 hover:bg-purple-50 text-lg rounded-full"
+            >
+              {t("retake")}
+            </Button>
+          )}
           <Button
             onClick={onBack}
             variant="ghost"

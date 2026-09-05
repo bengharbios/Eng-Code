@@ -61,6 +61,25 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // ===== Retake Check =====
+    if (!test.allowRetake) {
+      const existingAttempt = await db.attempt.findFirst({
+        where: {
+          studentId: student.id,
+          testId: test.id,
+        },
+      });
+      if (existingAttempt) {
+        return NextResponse.json(
+          {
+            error: "already_taken",
+            detail: "عذراً، الإدارة ألغت إمكانية إعادة هذا الاختبار للمرة الثانية.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const selectedMap = new Map<string, number>();
     for (const a of answers) {
       if (a && a.questionId !== undefined) {
@@ -257,7 +276,20 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       include: {
         student: { select: { name: true, phone: true, age: true, country: true } },
-        test: { select: { title: true, emoji: true, kind: true } },
+        test: {
+          select: {
+            title: true,
+            emoji: true,
+            kind: true,
+            certTitleAr: true,
+            certTitleEn: true,
+            certificateType: true,
+            courseHours: true,
+            showSponsorOnCert: true,
+            institutionName: true,
+            institutionLogo: true,
+          },
+        },
       },
     });
 
@@ -290,6 +322,13 @@ export async function GET(req: NextRequest) {
           nameAr: certDetails.nameAr || a.student.name,
           nameEn: certDetails.nameEn || "",
           khdaRequested: certDetails.isKhda || false,
+          certTitleAr: a.test.certTitleAr || "",
+          certTitleEn: a.test.certTitleEn || "",
+          testType: a.test.certificateType || "level",
+          courseHours: a.test.courseHours || 30,
+          showSponsorOnCert: a.test.showSponsorOnCert !== false,
+          institutionName: a.test.institutionName || "",
+          institutionLogo: a.test.institutionLogo || "",
         };
       })
     );

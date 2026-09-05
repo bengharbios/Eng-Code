@@ -38,11 +38,17 @@ export default function InstructorDashboard({ userName }: { userName: string }) 
   const [attempts, setAttempts] = useState<AttemptRow[]>([]);
   const [attemptsLoading, setAttemptsLoading] = useState(false);
 
+  const [siteSettings, setSiteSettings] = useState<Record<string, string>>({});
+
   const loadTests = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/tests", { cache: "no-store" });
+      const [res, cfg] = await Promise.all([
+        fetch("/api/tests", { cache: "no-store" }),
+        fetch("/api/admin/settings", { cache: "no-store" }),
+      ]);
       if (res.ok) setTests(await res.json());
+      if (cfg.ok) setSiteSettings(await cfg.json());
     } finally {
       setLoading(false);
     }
@@ -156,6 +162,7 @@ export default function InstructorDashboard({ userName }: { userName: string }) 
           attempts={attempts}
           loading={attemptsLoading}
           exportTestId={resultsTestId ?? "all"}
+          hideInstructorPhone={siteSettings?.hideInstructorStudentPhone === "true"}
           onRefresh={() => {
             if (resultsTestId) loadResults(resultsTestId);
           }}
