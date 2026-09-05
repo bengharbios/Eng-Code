@@ -9,7 +9,7 @@ import { ensureSeed } from "@/lib/seed";
 // GET /api/tests — session: own (instructor) / all (super) | ?public=1: published gallery
 export async function GET(req: NextRequest) {
   try {
-    try { await ensureSeed(); } catch (e) {}
+    try { await ensureSeed(); } catch (e) { console.error("ensureSeed error in GET /api/tests:", e); }
     const url = new URL(req.url);
     if (url.searchParams.get("public") === "1") {
       const tests = await db.test.findMany({
@@ -24,19 +24,19 @@ export async function GET(req: NextRequest) {
         tests.map((t) => ({
           id: t.id,
           slug: t.slug,
-          title: t.title,
-          description: t.description,
-          emoji: t.emoji,
-          color: t.color,
-          kind: t.kind,
-          language: t.language,
-          levelTag: t.levelTag,
-          timeLimitMin: t.timeLimitMin,
-          isSystem: t.isSystem,
+          title: t.title || "اختبار",
+          description: t.description || "",
+          emoji: t.emoji || "📝",
+          color: t.color || "#7c3aed",
+          kind: t.kind || "points",
+          language: t.language || "ar",
+          levelTag: t.levelTag || "general",
+          timeLimitMin: t.timeLimitMin || 0,
+          isSystem: Boolean(t.isSystem),
           logoUrl: t.logoUrl || "",
           institutionName: t.institutionName || "",
-          ownerName: t.owner?.name || "المعهد",
-          questionCount: t._count.questions,
+          ownerName: t.owner?.name || "معهد السلام الثقافي",
+          questionCount: t._count?.questions || 0,
         }))
       );
     }
@@ -67,15 +67,15 @@ export async function GET(req: NextRequest) {
         isPublished: t.isPublished,
         logoUrl: t.logoUrl || "",
         institutionName: t.institutionName || "",
-        ownerName: t.owner.name,
-        questionCount: t._count.questions,
-        attemptsCount: t._count.attempts,
+        ownerName: t.owner?.name || "المعهد",
+        questionCount: t._count?.questions || 0,
+        attemptsCount: t._count?.attempts || 0,
         createdAt: t.createdAt,
       }))
     );
-  } catch (err) {
-    console.error("GET /api/tests:", err);
-    return NextResponse.json({ error: "server" }, { status: 500 });
+  } catch (err: any) {
+    console.error("GET /api/tests error:", err);
+    return NextResponse.json({ error: "server", message: err?.message || String(err) }, { status: 500 });
   }
 }
 
