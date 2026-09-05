@@ -21,6 +21,7 @@ export interface CertificateData {
   khdaFee?: number;
   certId?: string;
   studentPhone?: string;
+  hideWhatsappBtn?: boolean;
 }
 
 export default function CertificateView({
@@ -151,7 +152,7 @@ export default function CertificateView({
           </h3>
         </div>
         <div className="flex items-center gap-3">
-          {data.studentPhone && (
+          {!data.hideWhatsappBtn && data.studentPhone && !data.studentPhone.includes("*") && (
             <a
               href={`https://wa.me/${data.studentPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
                 `مرحباً ${data.studentNameAr || data.studentNameEn}،\n\nنرفق لك تفاصيل شهادتك الرسمية من معهد السلام الثقافي:\n📜 نوع الشهادة: ${certTitleAr}\n📚 الاختبار: ${data.testTitle}\n⏱️ عدد الساعات: ${hours} ساعة تدريبية\n🔢 مرجع الشهادة: ${data.certId || "المعتمد"}\n\nيمكنك الاطلاع على الشهادة وطباعتها كـ PDF عبر الرابط:\n${typeof window !== "undefined" ? window.location.origin : ""}/lookup?phone=${data.studentPhone}`

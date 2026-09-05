@@ -117,7 +117,8 @@ export default function AttemptsTable({
       issueDate: new Date(a.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
       isKhda: isKhdaOverride !== undefined ? isKhdaOverride : (a.khdaRequested || false),
       certId: a.id.slice(-8).toUpperCase(),
-      studentPhone: a.phone,
+      studentPhone: isPhoneHidden ? undefined : a.phone,
+      hideWhatsappBtn: isPhoneHidden,
     });
   };
 
