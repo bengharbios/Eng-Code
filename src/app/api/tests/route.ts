@@ -100,6 +100,10 @@ export async function POST(req: NextRequest) {
       accreditation = "",
       logoUrl = "",
       institutionName = "",
+      allowCertificate = true,
+      certificateType = "level",
+      allowKhdaAttestation = true,
+      khdaFee = 140,
       outcomes = null,
       questions = [],
     } = body ?? {};
@@ -135,6 +139,10 @@ export async function POST(req: NextRequest) {
         accreditation: String(accreditation).slice(0, 3000),
         logoUrl: String(logoUrl).slice(0, 500000),
         institutionName: String(institutionName).slice(0, 300),
+        allowCertificate: Boolean(allowCertificate),
+        certificateType: certificateType === "attendance" ? "attendance" : "level",
+        allowKhdaAttestation: Boolean(allowKhdaAttestation),
+        khdaFee: Math.max(0, Number(khdaFee) || 140),
         outcomesJson: outcomes ? JSON.stringify(outcomes) : "",
         ownerId: (body.ownerId && session.role === "super") ? String(body.ownerId) : session.uid,
         questions: {

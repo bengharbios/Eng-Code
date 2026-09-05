@@ -91,6 +91,10 @@ export default function TestEditor({
   const [accreditation, setAccreditation] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [institutionName, setInstitutionName] = useState("");
+  const [allowCertificate, setAllowCertificate] = useState(true);
+  const [certificateType, setCertificateType] = useState<"attendance" | "level">("level");
+  const [allowKhdaAttestation, setAllowKhdaAttestation] = useState(true);
+  const [khdaFee, setKhdaFee] = useState(140);
   const [questions, setQuestions] = useState<QItem[]>([emptyQuestion("points")]);
   const [outcomes, setOutcomes] = useState<OutcomesDoc>({
     buckets: [],
@@ -134,6 +138,10 @@ export default function TestEditor({
         setAccreditation(d.accreditation || "");
         setLogoUrl(d.logoUrl || "");
         setInstitutionName(d.institutionName || "");
+        setAllowCertificate(d.allowCertificate ?? true);
+        setCertificateType(d.certificateType || "level");
+        setAllowKhdaAttestation(d.allowKhdaAttestation ?? true);
+        setKhdaFee(d.khdaFee ?? 140);
         setQuestions(
           (d.questions || []).map(
             (q: {
@@ -250,6 +258,10 @@ export default function TestEditor({
         accreditation,
         logoUrl,
         institutionName,
+        allowCertificate,
+        certificateType,
+        allowKhdaAttestation,
+        khdaFee,
         ownerId: selectedOwnerId || undefined,
         outcomes: kind === "diagnostic" ? outcomes : null,
         questions: questions.map((q) => ({
@@ -473,7 +485,7 @@ export default function TestEditor({
                   يظهر هذا الشعار للطلاب في بطاقات الصفحة الرئيسية ومقدمة وكرت الاعتماد الخاص بهذا الاختبار دون أي تغيير على شعار المعهد في الهيدر الرئيسي.
                 </p>
                 <div className="pt-2">
-                  <Label className="font-bold text-teal-900 text-xs block mb-1">🏛️ اسم المؤسسة / المركز (يظهر بجوار الشعار واسم المحاضر)</Label>
+                  <Label className="font-bold text-teal-900 text-xs block mb-1">🏛️ اسم المؤسسة / المركز (يظهر بجوار الشعار واسم المحاضر وبالشهادة برعاية)</Label>
                   <Input
                     value={institutionName}
                     onChange={(e) => setInstitutionName(e.target.value)}
@@ -483,6 +495,71 @@ export default function TestEditor({
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* ===== Certificate Settings Panel ===== */}
+          <div className="space-y-3 sm:col-span-2 card-fun p-5 bg-amber-50/60 !border-amber-300">
+            <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+              <Label className="font-extrabold text-amber-950 text-base flex items-center gap-2">
+                📜 إعدادات وخيارات الشهادات للطلاب
+              </Label>
+              <div className="flex items-center gap-2">
+                <Switch checked={allowCertificate} onCheckedChange={setAllowCertificate} />
+                <span className="text-sm font-bold text-amber-900">
+                  {allowCertificate ? "إصدار الشهادات مفعّل" : "مغلق"}
+                </span>
+              </div>
+            </div>
+
+            {allowCertificate && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-1.5">
+                  <Label className="font-bold text-amber-900 text-xs">نوع الشهادة الصادرة للطالب</Label>
+                  <Select value={certificateType} onValueChange={(val: any) => setCertificateType(val)}>
+                    <SelectTrigger className="h-10 rounded-xl border-amber-300 bg-white font-bold text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="level">🎓 شهادة تحديد مستوى وإنجاز (Level / Achievement)</SelectItem>
+                      <SelectItem value="attendance">📜 شهادة حضور تدريبية (Attendance)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="font-bold text-amber-900 text-xs">خيار تصديق هيئة المعرفة (KHDA - دبي)</Label>
+                  <div className="flex items-center gap-3 h-10 px-3 bg-white border border-amber-300 rounded-xl">
+                    <Switch checked={allowKhdaAttestation} onCheckedChange={setAllowKhdaAttestation} />
+                    <span className="text-xs font-bold text-amber-900">
+                      {allowKhdaAttestation ? "إتاحة طلب تصديق KHDA (140 درهم)" : "شهادة المعهد المجانية فقط"}
+                    </span>
+                  </div>
+                </div>
+
+                {allowKhdaAttestation && (
+                  <div className="space-y-1.5 sm:col-span-2 bg-amber-100/50 p-3 rounded-xl border border-amber-200">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="space-y-0.5">
+                        <Label className="font-bold text-amber-950 text-xs">رسوم تصديق هيئة المعرفة KHDA (بالدرهم الإماراتي)</Label>
+                        <p className="text-[11px] text-amber-800 font-medium">
+                          تستغرق من 2 إلى 5 أيام عمل، والشهادة المجانية للفرع تبقى متاحة دائماً مجاناً.
+                        </p>
+                      </div>
+                      <div className="w-32 flex items-center gap-1">
+                        <Input
+                          type="number"
+                          min={0}
+                          value={khdaFee}
+                          onChange={(e) => setKhdaFee(Number(e.target.value))}
+                          className="h-9 font-black text-amber-900 bg-white border-amber-300 rounded-lg text-center"
+                        />
+                        <span className="text-xs font-bold text-amber-900">AED</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

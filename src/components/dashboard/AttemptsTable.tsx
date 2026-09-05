@@ -7,6 +7,7 @@ import type { AttemptRow } from "@/lib/shared-types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import CertificateView from "@/components/certificate/CertificateView";
 
 const LEVEL_COLORS: Record<string, string> = {
   A1: "#22c55e", A2: "#14b8a6", B1: "#f59e0b", B2: "#f97316", C1: "#8b5cf6",
@@ -33,6 +34,7 @@ export default function AttemptsTable({
   
   const [localAttempts, setLocalAttempts] = useState<AttemptRow[]>(attempts);
   const [viewAttempt, setViewAttempt] = useState<any>(null);
+  const [viewCertData, setViewCertData] = useState<any>(null);
   const [loadingAttempt, setLoadingAttempt] = useState(false);
 
   // Sync local state when parent refreshes data
@@ -129,6 +131,7 @@ export default function AttemptsTable({
                 <th className="p-3 text-right font-extrabold">{t("score")}</th>
                 <th className="p-3 text-right font-extrabold">{t("level")}</th>
                 <th className="p-3 text-right font-extrabold">{t("interviewCol")}</th>
+                <th className="p-3 text-right font-extrabold">📜 الشهادة</th>
                 <th className="p-3 text-right font-extrabold">{t("date")}</th>
                 <th className="p-3 text-right font-extrabold">إجراءات</th>
               </tr>
@@ -200,6 +203,51 @@ export default function AttemptsTable({
                         </span>
                       ) : (
                         <span className="text-purple-300">{t("no")}</span>
+                      )}
+                    </td>
+                    <td className="p-3 text-center whitespace-nowrap">
+                      {a.certRequested ? (
+                        <button
+                          onClick={() =>
+                            setViewCertData({
+                              studentNameAr: a.nameAr || a.name,
+                              studentNameEn: a.nameEn || "",
+                              testTitle: a.testTitle,
+                              scorePercent: a.percentage,
+                              levelName: a.levelName,
+                              levelCode: a.level,
+                              issueDate: new Date(a.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
+                              isKhda: a.khdaRequested || false,
+                              certId: a.id.slice(-8).toUpperCase(),
+                            })
+                          }
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black transition cursor-pointer ${
+                            a.khdaRequested
+                              ? "bg-pink-100 text-pink-900 border border-pink-300 hover:bg-pink-200"
+                              : "bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200"
+                          }`}
+                        >
+                          {a.khdaRequested ? "🏛️ مصدقة KHDA" : "📜 شهادة مجانية"}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() =>
+                            setViewCertData({
+                              studentNameAr: a.nameAr || a.name,
+                              studentNameEn: a.nameEn || "",
+                              testTitle: a.testTitle,
+                              scorePercent: a.percentage,
+                              levelName: a.levelName,
+                              levelCode: a.level,
+                              issueDate: new Date(a.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }),
+                              isKhda: false,
+                              certId: a.id.slice(-8).toUpperCase(),
+                            })
+                          }
+                          className="text-xs text-purple-400 hover:text-purple-700 underline font-semibold"
+                        >
+                          معاينة الشهادة
+                        </button>
                       )}
                     </td>
                     <td className="p-3 text-xs text-purple-500 font-semibold whitespace-nowrap">
@@ -282,6 +330,14 @@ export default function AttemptsTable({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Certificate Modal View */}
+      {viewCertData && (
+        <CertificateView
+          data={viewCertData}
+          onClose={() => setViewCertData(null)}
+        />
+      )}
     </div>
   );
 }

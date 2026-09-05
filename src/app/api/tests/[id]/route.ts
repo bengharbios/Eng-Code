@@ -52,6 +52,10 @@ export async function GET(
       accreditation: test.accreditation,
       logoUrl: test.logoUrl || "",
       institutionName: test.institutionName || "",
+      allowCertificate: test.allowCertificate,
+      certificateType: test.certificateType,
+      allowKhdaAttestation: test.allowKhdaAttestation,
+      khdaFee: test.khdaFee,
       outcomes: test.outcomesJson ? JSON.parse(test.outcomesJson) : null,
       ownerId: test.ownerId,
       ownerName: test.owner.name,
@@ -110,6 +114,11 @@ export async function PATCH(
     if (body.logoUrl !== undefined) data.logoUrl = String(body.logoUrl).slice(0, 500000);
     if (body.institutionName !== undefined)
       data.institutionName = String(body.institutionName).slice(0, 300);
+    if (body.allowCertificate !== undefined) data.allowCertificate = Boolean(body.allowCertificate);
+    if (body.certificateType !== undefined)
+      data.certificateType = body.certificateType === "attendance" ? "attendance" : "level";
+    if (body.allowKhdaAttestation !== undefined) data.allowKhdaAttestation = Boolean(body.allowKhdaAttestation);
+    if (body.khdaFee !== undefined) data.khdaFee = Math.max(0, Number(body.khdaFee) || 140);
     if (body.outcomes !== undefined)
       data.outcomesJson = body.outcomes ? JSON.stringify(body.outcomes) : "";
     if (body.isPublished !== undefined) data.isPublished = Boolean(body.isPublished);

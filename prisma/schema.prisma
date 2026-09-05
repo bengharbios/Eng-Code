@@ -40,6 +40,10 @@ model Test {
   accreditation   String   @default("") // scientific accreditation text shown in the intro
   logoUrl         String   @default("")
   institutionName String   @default("")
+  allowCertificate     Boolean  @default(true)
+  certificateType      String   @default("level") // 'attendance' | 'level'
+  allowKhdaAttestation Boolean  @default(true)
+  khdaFee              Int      @default(140)
   outcomesJson    String   @default("") // diagnostic outcomes {buckets:[{key,emoji,title,description,program,color}],tie:{...}}
   ownerId       String
   owner         User     @relation(fields: [ownerId], references: [id])
@@ -78,20 +82,22 @@ model Student {
 
 // ===== Attempts (results per test) =====
 model Attempt {
-  id             String   @id @default(cuid())
-  studentId      String
-  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  testId         String
-  test           Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
-  score          Int      @default(0)
-  total          Int      @default(0)
-  percentage     Float    @default(0)
-  level          String   @default("") // CEFR code or bucket key
-  levelName      String   @default("") // level title
-  program        String   @default("") // recommended program (diagnostic)
-  wantsInterview Boolean  @default(false)
-  answersJson    String   @default("")
-  createdAt      DateTime @default(now())
+  id              String   @id @default(cuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  testId          String
+  test            Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  score           Int      @default(0)
+  total           Int      @default(0)
+  percentage      Float    @default(0)
+  level           String   @default("") // CEFR code or bucket key
+  levelName       String   @default("") // level title
+  program         String   @default("") // recommended program (diagnostic)
+  wantsInterview  Boolean  @default(false)
+  answersJson     String   @default("")
+  certRequested   Boolean  @default(false)
+  certDetailsJson String   @default("")
+  createdAt       DateTime @default(now())
 }
 
 model SiteSettings {

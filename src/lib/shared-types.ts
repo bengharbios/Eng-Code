@@ -27,6 +27,10 @@ export interface PublicTest {
   institutionName?: string;
   ownerName: string;
   questions: PublicQuestion[];
+  allowCertificate?: boolean;
+  certificateType?: "attendance" | "level";
+  allowKhdaAttestation?: boolean;
+  khdaFee?: number;
 }
 
 export interface ResultLevelInfo {
@@ -73,6 +77,11 @@ export interface AttemptRow {
   wantsInterview: boolean;
   answersJson: string;
   createdAt: string;
+  certRequested?: boolean;
+  certDetailsJson?: string;
+  nameAr?: string;
+  nameEn?: string;
+  khdaRequested?: boolean;
 }
 
 export interface StudentAttemptRow {
@@ -86,4 +95,9 @@ export interface StudentAttemptRow {
   program: string;
   wantsInterview: boolean;
   createdAt: string;
+  certRequested?: boolean;
+  certDetailsJson?: string;
+  nameAr?: string;
+  nameEn?: string;
+  khdaRequested?: boolean;
 }

@@ -159,14 +159,24 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PATCH /api/attempts — student marks interview request (public, scoped)
+// PATCH /api/attempts — student marks interview request or certificate request
 export async function PATCH(req: NextRequest) {
   try {
-    const { attemptId } = await req.json();
+    const body = await req.json();
+    const { attemptId, wantsInterview, certRequested, certDetailsJson } = body ?? {};
     if (!attemptId) return NextResponse.json({ error: "bad" }, { status: 400 });
+
+    const dataToUpdate: Record<string, any> = {};
+    if (wantsInterview !== undefined) dataToUpdate.wantsInterview = Boolean(wantsInterview);
+    if (certRequested !== undefined) dataToUpdate.certRequested = Boolean(certRequested);
+    if (certDetailsJson !== undefined) dataToUpdate.certDetailsJson = String(certDetailsJson);
+    if (wantsInterview === undefined && certRequested === undefined) {
+      dataToUpdate.wantsInterview = true;
+    }
+
     await db.attempt.update({
       where: { id: String(attemptId) },
-      data: { wantsInterview: true },
+      data: dataToUpdate,
     });
     return NextResponse.json({ ok: true });
   } catch (err) {
@@ -236,25 +246,36 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(
-      attempts.map((a) => ({
-        id: a.id,
-        name: a.student.name,
-        phone: a.student.phone,
-        age: a.student.age,
-        country: a.student.country,
-        testTitle: a.test.title,
-        testEmoji: a.test.emoji,
-        testId: a.testId,
-        score: a.score,
-        total: a.total,
-        percentage: a.percentage,
-        level: a.level,
-        levelName: a.levelName,
-        program: a.program,
-        wantsInterview: a.wantsInterview,
-        answersJson: a.answersJson,
-        createdAt: a.createdAt,
-      }))
+      attempts.map((a) => {
+        let certDetails: any = {};
+        try {
+          if (a.certDetailsJson) certDetails = JSON.parse(a.certDetailsJson);
+        } catch {}
+        return {
+          id: a.id,
+          name: a.student.name,
+          phone: a.student.phone,
+          age: a.student.age,
+          country: a.student.country,
+          testTitle: a.test.title,
+          testEmoji: a.test.emoji,
+          testId: a.testId,
+          score: a.score,
+          total: a.total,
+          percentage: a.percentage,
+          level: a.level,
+          levelName: a.levelName,
+          program: a.program,
+          wantsInterview: a.wantsInterview,
+          answersJson: a.answersJson,
+          createdAt: a.createdAt,
+          certRequested: a.certRequested,
+          certDetailsJson: a.certDetailsJson,
+          nameAr: certDetails.nameAr || a.student.name,
+          nameEn: certDetails.nameEn || "",
+          khdaRequested: certDetails.isKhda || false,
+        };
+      })
     );
   } catch (err) {
     console.error("GET /api/attempts:", err);

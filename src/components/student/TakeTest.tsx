@@ -134,6 +134,8 @@ export default function TakeTest({
         <ResultView
           result={result}
           studentName={student.name}
+          studentPhone={student.phone}
+          test={test}
           onRetake={() => {
             setResult(null);
             setStep("intro");

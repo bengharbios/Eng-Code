@@ -35,6 +35,10 @@ export async function GET(
       logoUrl: test.logoUrl || "",
       institutionName: test.institutionName || "",
       ownerName: test.owner.name,
+      allowCertificate: test.allowCertificate,
+      certificateType: test.certificateType,
+      allowKhdaAttestation: test.allowKhdaAttestation,
+      khdaFee: test.khdaFee,
       questions: test.questions.map((q) => ({
         id: q.id,
         order: q.order,

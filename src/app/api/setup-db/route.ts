@@ -93,6 +93,12 @@ CREATE TABLE IF NOT EXISTS "Attempt" (
     try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "allowRetake" BOOLEAN NOT NULL DEFAULT 1;`); } catch(e) {}
     try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "logoUrl" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
     try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "institutionName" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "allowCertificate" BOOLEAN NOT NULL DEFAULT 1;`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "certificateType" TEXT NOT NULL DEFAULT 'level';`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "allowKhdaAttestation" BOOLEAN NOT NULL DEFAULT 1;`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Test" ADD COLUMN "khdaFee" INTEGER NOT NULL DEFAULT 140;`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Attempt" ADD COLUMN "certRequested" BOOLEAN NOT NULL DEFAULT 0;`); } catch(e) {}
+    try { await db.$executeRawUnsafe(`ALTER TABLE "Attempt" ADD COLUMN "certDetailsJson" TEXT NOT NULL DEFAULT '';`); } catch(e) {}
     try {
       await db.$executeRawUnsafe(`
         CREATE TABLE IF NOT EXISTS "SiteSettings" (
