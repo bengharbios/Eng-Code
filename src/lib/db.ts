@@ -9,28 +9,22 @@ const globalForPrisma = globalThis as unknown as {
 let prisma: PrismaClient;
 
 const HARDCODED_TURSO_URL = "libsql://database-yellow-button-vercel-icfg-16naipzg5tbpfaiz1ny2dv98.aws-us-east-1.turso.io";
-const HARDCODED_TURSO_AUTH = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJleHAiOjE3ODkxMzc3MjIsImlhdCI6MTc4ODUzMjkyMiwiaWQiOiIwMWEwNjc1Yy04YTAxLTc5MTMtYjUxNi1iMTQ5OTI4ZDBiOTciLCJraWQiOiJ6TWY4dk0tcUl6aWxFNlczYTUtWkUxNldWdkdSNE9LUGdGVUc5X3Z6elE0IiwicmlkIjoiMGY5NDE5OGQtNTU2OS00MDYwLTkyOWQtZTAyOTdjODk0OTVhIn0.ypuClb6jnIgAh3E2b7LS2KoKNk6oIaGzkl8eT6LMchBLCE7etY0dqhJXhz3j-Hmm6oHGF229bFJjAcFItCqdCQ";
+const HARDCODED_TURSO_AUTH = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg0NDA1MTMsImlkIjoiMDFhMDY3NWMtOGEwMS03OTEzLWI1MTYtYjE0OTkyOGQwYjk3Iiwia2lkIjoiek1mOHZNLXFJemlsRTZXM2E1LVpFMTZXVnZHUjRPS1BnRlVHOV92enpRNCIsInJpZCI6IjBmOTQxOThkLTU1NjktNDA2MC05MjlkLWUwMjk3Yzg5NDk1YSJ9.cfoumPoafheR4R_r9TzlfhC6vB2Haspff-_K4aLxT3llCCjkdA7AH_KX7dq9biyw1OZS0ZFrE1O1vDKtMTvMBA";
 
-let tUrl = HARDCODED_TURSO_URL;
-let tAuth = HARDCODED_TURSO_AUTH;
+let envUrl = process.env.TURSO_DATABASE_URL;
+let tUrl = (envUrl && envUrl !== "undefined") ? envUrl : HARDCODED_TURSO_URL;
 
-if (process.env.TURSO_DATABASE_URL && process.env.TURSO_DATABASE_URL.includes("database-yellow-button")) {
-  tUrl = process.env.TURSO_DATABASE_URL;
-}
-if (process.env.TURSO_AUTH_TOKEN && process.env.TURSO_AUTH_TOKEN.includes("ypuClb6jnIgAh3E2b7LS2KoKNk6oIaGzkl8eT6LMchBLCE7etY0dqhJXhz3j")) {
-  tAuth = process.env.TURSO_AUTH_TOKEN;
-}
+let envAuth = process.env.TURSO_AUTH_TOKEN;
+let tAuth = (envAuth && envAuth !== "undefined") ? envAuth : HARDCODED_TURSO_AUTH;
 
 export let lastInitError: any = null;
 
-if (tUrl && tUrl !== "undefined" && tAuth && tAuth !== "undefined") {
+if (tUrl && tAuth) {
   try {
-    // Vercel's cached adapter version exports PrismaLibSQL (capitalized)
-    // BUT it takes a Config object instead of a Client instance.
     const adapter = new PrismaLibSQL({
       url: tUrl.replace(/"/g, '').trim(),
       authToken: tAuth.replace(/"/g, '').trim(),
-    } as any)
+    } as any);
     
     // Ensure process.env has the forced valid credentials for Prisma Engine
     process.env.TURSO_DATABASE_URL = tUrl;
