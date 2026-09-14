@@ -11,11 +11,8 @@ let prisma: PrismaClient;
 const HARDCODED_TURSO_URL = "libsql://database-yellow-button-vercel-icfg-16naipzg5tbpfaiz1ny2dv98.aws-us-east-1.turso.io";
 const HARDCODED_TURSO_AUTH = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODg0NDA1MTMsImlkIjoiMDFhMDY3NWMtOGEwMS03OTEzLWI1MTYtYjE0OTkyOGQwYjk3Iiwia2lkIjoiek1mOHZNLXFJemlsRTZXM2E1LVpFMTZXVnZHUjRPS1BnRlVHOV92enpRNCIsInJpZCI6IjBmOTQxOThkLTU1NjktNDA2MC05MjlkLWUwMjk3Yzg5NDk1YSJ9.cfoumPoafheR4R_r9TzlfhC6vB2Haspff-_K4aLxT3llCCjkdA7AH_KX7dq9biyw1OZS0ZFrE1O1vDKtMTvMBA";
 
-let envUrl = process.env.TURSO_DATABASE_URL;
-let tUrl = (envUrl && envUrl !== "undefined") ? envUrl : HARDCODED_TURSO_URL;
-
-let envAuth = process.env.TURSO_AUTH_TOKEN;
-let tAuth = (envAuth && envAuth !== "undefined") ? envAuth : HARDCODED_TURSO_AUTH;
+let tUrl = HARDCODED_TURSO_URL;
+let tAuth = HARDCODED_TURSO_AUTH;
 
 export let lastInitError: any = null;
 
